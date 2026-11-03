@@ -16,6 +16,8 @@ services:
       Smtp__Host: "${SMTP_HOST}"
       Smtp__Username: "${SMTP_USERNAME}"
       Smtp__Password: "${SMTP_PASSWORD}"
+      # Яндекс и большинство SMTP отправляют только от адреса ящика из SMTP_USERNAME
+      Smtp__From: "${SMTP_FROM:-no-reply@movingmotivators.ru}"
       App__AdminEmails__0: "${ADMIN_EMAILS}"
       # Monium: логи и трейсы; без ключа или проекта отправка просто выключена
       Monium__Enabled: "${MONIUM__ENABLED:-false}"

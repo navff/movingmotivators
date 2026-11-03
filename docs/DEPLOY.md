@@ -113,6 +113,7 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 | `DB_CONNECTION_STRING` | строка из шага 3 |
 | `SMTP_HOST` | например, `smtp.yandex.ru` |
 | `SMTP_USERNAME`, `SMTP_PASSWORD` | логин и пароль приложения почтового ящика |
+| `SMTP_FROM` | адрес отправителя; у Яндекса должен совпадать с `SMTP_USERNAME`, иначе письма отклоняются. По умолчанию `no-reply@movingmotivators.ru` |
 | `ADMIN_EMAILS` | ваш email для доступа к `/admin`; несколько — через запятую |
 
 Наблюдаемость в Monium, по желанию (подробнее в разделе [Monium](#monium-логи-и-трейсы)):
@@ -126,7 +127,7 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 
 Пароли и ключи отметьте как **секреты** (*Is Secret / Lock*), чтобы они не показывались в логах сборки.
 
-Остальные настройки лежат в [appsettings.json](../backend/src/Motivators.Api/appsettings.json): реквизиты ИП, цены, адрес сайта `https://movingmotivators.ru`, отправитель писем, SMTP-порт 465 с SSL. Чтобы поменять их, правьте файл и делайте push. Срочно, без коммита, любой ключ можно переопределить переменной вида `Секция__Ключ` прямо в Coolify. Например, если провайдер работает на порту 587: `Smtp__Port=587` и `Smtp__Security=starttls`.
+Остальные настройки лежат в [appsettings.json](../backend/src/Motivators.Api/appsettings.json): реквизиты ИП, цены, адрес сайта `https://movingmotivators.ru`, отправитель писем, SMTP-порт 465 с SSL. Чтобы поменять их, правьте файл и делайте push. Если какую-то настройку нужно задавать именно из Coolify, добавьте её строкой в `environment` сервиса `api` в [docker-compose.yml](../docker-compose.yml), например `Smtp__Port: "${SMTP_PORT:-465}"`. В режиме Docker Compose Coolify передаёт в контейнер только те переменные, которые упомянуты в этом файле.
 
 ### 4.4. Первый деплой
 
@@ -234,7 +235,7 @@ curl -s -w " [%{http_code}]\n" -X POST https://ingest.monium.yandex.cloud/otlp/v
 | `Pricing:CheckoutMode=… не поддерживается` | В MVP допустимо только `fake` |
 | Вход не работает, после «Войти» снова просит войти | Сайт открыт не по HTTPS: cookie `__Host-session` требует Secure. Проверьте домен и сертификат |
 | Мутации возвращают `403 bad_origin` | Сайт открыт не по адресу `App:BaseUrl` из appsettings.json (http/https, www, другой домен) |
-| Письма не приходят | Проверьте `SMTP_*` и лог `api` (ошибки отправки пишутся туда). По умолчанию порт 465 с SSL; для 587 добавьте `Smtp__Port=587` и `Smtp__Security=starttls` |
+| Письма не приходят | Проверьте `SMTP_*` и лог `api` (ошибки отправки пишутся туда). Частая причина — `SMTP_FROM` не совпадает с ящиком `SMTP_USERNAME` (Яндекс такое отклоняет). По умолчанию порт 465 с SSL; для 587 поменяйте `Smtp:Port` и `Smtp:Security` (`starttls`) в appsettings.json |
 | Письма уходят в спам | Не настроены SPF/DKIM/DMARC (шаг 5) |
 | Сборка падает с `Killed` / exit code 137 | Не хватает памяти при сборке — добавьте swap или увеличьте RAM |
 | `429 Слишком много запросов` при тестах | Сработали лимиты: 20 запросов ссылки на IP в час, 5 ссылок на один email в час, 10 отправок ответов на IP в минуту |
