@@ -104,7 +104,7 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 
 ### 4.3. Переменные окружения
 
-На вкладке **Environment Variables** задайте переменные из [.env.example](../.env.example). Переменные с синтаксисом `${...:?}` в compose обязательны: без них деплой остановится с ошибкой.
+На вкладке **Environment Variables** задайте переменные из [.env.example](../.env.example). Галочку **Build Variable** (*Available at Buildtime*) ставить не нужно: образы собираются без секретов, переменные нужны только при запуске. Если `DB_CONNECTION_STRING` или `SMTP_HOST` не заданы, сборка пройдёт, но `api` не запустится, а в логе будет понятная ошибка с именем переменной.
 
 | Переменная | Значение | Обязательна |
 |---|---|---|
@@ -171,7 +171,8 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 
 | Симптом | Причина и решение |
 |---|---|
-| `api` не стартует, в логе `ConnectionStrings:Default` или `Failed to connect` | Неверная `DB_CONNECTION_STRING`, либо не включена опция **Connect To Predefined Network** (шаг 4.1) |
+| `api` не стартует: `ConnectionStrings:Default не задан` или `Smtp:Host не задан` | Не заданы `DB_CONNECTION_STRING` или `SMTP_HOST` (шаг 4.3) — после добавления нажмите **Redeploy** |
+| `api` не стартует, в логе `Failed to connect` | Неверная `DB_CONNECTION_STRING`, либо не включена опция **Connect To Predefined Network** (шаг 4.1) |
 | `Pricing:CheckoutMode=… не поддерживается` | В MVP допустимо только `fake` |
 | Вход не работает, после «Войти» снова просит войти | Сайт открыт не по HTTPS: cookie `__Host-session` требует Secure. Проверьте домен и сертификат |
 | Мутации возвращают `403 bad_origin` | `APP_BASE_URL` не совпадает с адресом в браузере (http/https, www) |

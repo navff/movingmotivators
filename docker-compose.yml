@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
-      ConnectionStrings__Default: "${DB_CONNECTION_STRING:?}"
+      ConnectionStrings__Default: "${DB_CONNECTION_STRING}"
       Db__MigrateOnStartup: "true"
       App__BaseUrl: "${APP_BASE_URL:-https://movingmotivators.ru}"
       App__ProductName: "${APP_PRODUCT_NAME:-Движущие Мотиваторы: онлайн-тест}"
@@ -18,7 +18,7 @@ services:
       Pricing__FreeMaxParticipants: "${PRICING_FREE_MAX_PARTICIPANTS:-8}"
       Pricing__SurveyPriceRub: "${PRICING_SURVEY_PRICE_RUB:-299}"
       Pricing__CheckoutMode: "${PRICING_CHECKOUT_MODE:-fake}"
-      Smtp__Host: "${SMTP_HOST:?}"
+      Smtp__Host: "${SMTP_HOST}"
       Smtp__Port: "${SMTP_PORT:-465}"
       Smtp__Security: "${SMTP_SECURITY:-ssl}"
       Smtp__Username: "${SMTP_USERNAME:-}"

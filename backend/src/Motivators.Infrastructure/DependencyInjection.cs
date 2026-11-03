@@ -12,12 +12,17 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
-        var cs = config.GetConnectionString("Default")
-                 ?? throw new InvalidOperationException("ConnectionStrings:Default не задан");
+        // пустое значение приходит из compose, если переменная не задана в Coolify
+        var cs = config.GetConnectionString("Default");
+        if (string.IsNullOrWhiteSpace(cs))
+            throw new InvalidOperationException("ConnectionStrings:Default не задан (в Docker — переменная DB_CONNECTION_STRING)");
         services.AddDbContext<AppDbContext>(o => ConfigureDb(o, cs));
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
-        services.Configure<SmtpOptions>(config.GetSection(SmtpOptions.Section));
+        services.AddOptions<SmtpOptions>()
+            .Bind(config.GetSection(SmtpOptions.Section))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.Host), "Smtp:Host не задан (в Docker — переменная SMTP_HOST)")
+            .ValidateOnStart();
         services.AddSingleton<IEmailRenderer, FluidEmailRenderer>();
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
         return services;
