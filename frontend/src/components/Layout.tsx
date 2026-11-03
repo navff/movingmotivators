@@ -4,6 +4,7 @@ import { t } from '@/i18n'
 import { useMe, useSite } from '@/api/hooks'
 import { api } from '@/api/client'
 import { Spinner } from './ui'
+import { SeoHead } from '@/seo'
 
 function Logo() {
   return (
@@ -62,6 +63,11 @@ export function Footer() {
   return (
     <footer className="mt-16 border-t border-zinc-200 py-8 text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
       <div className="mx-auto max-w-6xl space-y-2 px-4">
+        <nav aria-label={t.footer.articles} className="flex flex-wrap gap-x-4 gap-y-1">
+          {t.footer.links.map((l) => (
+            <Link key={l.to} to={l.to} className="hover:underline">{l.name}</Link>
+          ))}
+        </nav>
         <p>
           <a href="https://management30.com/practice/moving-motivators/" target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
             {t.footer.mmCopyright}
@@ -90,6 +96,7 @@ export function Footer() {
 export function SiteLayout() {
   return (
     <div className="flex min-h-dvh flex-col">
+      <SeoHead />
       <Header />
       <main className="flex-1">
         <Outlet />

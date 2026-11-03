@@ -11,6 +11,7 @@ public class MaintenanceWorker(IServiceScopeFactory scopes, ILogger<MaintenanceW
         var lastCleanup = DateTimeOffset.MinValue;
         do
         {
+            using var activity = MoniumExtensions.Source.StartActivity("maintenance");
             try
             {
                 await using var scope = scopes.CreateAsyncScope();
@@ -24,6 +25,7 @@ public class MaintenanceWorker(IServiceScopeFactory scopes, ILogger<MaintenanceW
             }
             catch (Exception ex) when (!ct.IsCancellationRequested)
             {
+                activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error, ex.Message);
                 logger.LogError(ex, "Ошибка фоновой задачи");
             }
         } while (await timer.WaitForNextTickAsync(ct));

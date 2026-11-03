@@ -16,18 +16,23 @@ using Serilog;
 using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
+var monium = MoniumOptions.From(builder.Configuration);
 
 builder.Host.UseSerilog((ctx, cfg) =>
 {
     cfg.ReadFrom.Configuration(ctx.Configuration)
         .Enrich.FromLogContext()
         .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
-        .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning);
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
+        // исходящие HTTP (ЮKassa и т. п.) пишут по 4 записи на запрос — оставляем только проблемы
+        .MinimumLevel.Override("System.Net.Http.HttpClient", Serilog.Events.LogEventLevel.Warning);
     if (ctx.Configuration.GetValue("Logging:Json", true))
         cfg.WriteTo.Console(new RenderedCompactJsonFormatter());
     else
         cfg.WriteTo.Console();
+    cfg.WriteToMonium(monium);
 });
+builder.Services.AddMoniumTracing(monium);
 
 builder.Services.AddApplication(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -79,6 +84,13 @@ if (builder.Configuration.GetValue("Background:Enabled", true))
     builder.Services.AddHostedService<MaintenanceWorker>();
 
 var app = builder.Build();
+
+// одна строка при старте: куда идёт телеметрия — чтобы не искать данные «не в том кластере»
+if (monium.IsActive)
+    app.Logger.LogInformation("Monium: отправка включена, проект {Project}, кластер {Cluster}, сервис {Service}",
+        monium.Project, monium.Cluster, monium.Service);
+else if (monium.Enabled)
+    app.Logger.LogWarning("Monium: отправка выключена — {Problem}", monium.Problem());
 
 if (app.Configuration.GetValue("Db:MigrateOnStartup", false))
 {

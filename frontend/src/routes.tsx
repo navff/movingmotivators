@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ComponentType } from 'react'
-import { createBrowserRouter, Link } from 'react-router'
+import { Link, type RouteObject } from 'react-router'
 import { SiteLayout, RequireAuth, Page } from './components/Layout'
 import { Spinner } from './components/ui'
 import { t } from './i18n'
@@ -23,7 +23,8 @@ function NotFound() {
   )
 }
 
-export const router = createBrowserRouter([
+/** Браузер создаёт из них browser router (main.tsx), пререндер — memory router в Node (src/prerender.tsx). */
+export const routes: RouteObject[] = [
   // прохождение — отдельный лёгкий layout без шапки кабинета
   { path: '/s/:code', element: page(() => import('./features/respond/RespondPage')) },
   {
@@ -31,6 +32,9 @@ export const router = createBrowserRouter([
     children: [
       { path: '/', element: page(() => import('./pages/LandingPage')) },
       { path: '/methods/moving-motivators', element: page(() => import('./pages/MethodMotivatorsPage')) },
+      { path: '/moving-motivators/kartochki', element: page(() => import('./pages/MotivatorCardsPage')) },
+      { path: '/moving-motivators/kak-provesti', element: page(() => import('./pages/HowToRunPage')) },
+      { path: '/moving-motivators/primenenie', element: page(() => import('./pages/UseCasesPage')) },
       { path: '/methods/health-check', element: page(() => import('./pages/MethodHealthCheckPage')) },
       { path: '/terms', element: page(() => import('./pages/legal/TermsPage')) },
       { path: '/privacy', element: page(() => import('./pages/legal/PrivacyPage')) },
@@ -59,4 +63,4 @@ export const router = createBrowserRouter([
       { path: '*', element: <NotFound /> },
     ],
   },
-])
+]

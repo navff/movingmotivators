@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Motivators.Application.Common;
 using Motivators.Application.Email;
@@ -30,5 +32,14 @@ public static class DependencyInjection
 
     public static void ConfigureDb(DbContextOptionsBuilder o, string connectionString) =>
         o.UseNpgsql(connectionString, n => n.MigrationsHistoryTable("__ef_migrations_history"))
-            .UseSnakeCaseNamingConvention();
+            .UseSnakeCaseNamingConvention()
+            // EF пишет каждую успешную команду на Information («Executed DbCommand…»); фоновые задачи
+            // опрашивают БД по таймеру — это сплошной поток в логах/Monium. Понижаем в источнике,
+            // чтобы не зависеть от фильтров конкретного логгера. Ошибки команд остаются Error.
+            // SQL-запросы и так видны в трейсах (Npgsql).
+            .ConfigureWarnings(w => w.Log(
+                (RelationalEventId.CommandExecuted, LogLevel.Debug),
+                (RelationalEventId.CommandCreated, LogLevel.Trace),
+                (RelationalEventId.ConnectionOpened, LogLevel.Trace),
+                (RelationalEventId.ConnectionClosed, LogLevel.Trace)));
 }

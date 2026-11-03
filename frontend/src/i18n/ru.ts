@@ -36,6 +36,14 @@ export const ru = {
     terms: 'Оферта',
     privacy: 'Политика конфиденциальности',
     consent: 'Согласие на обработку ПДн',
+    articles: 'Статьи',
+    links: [
+      { to: '/methods/moving-motivators', name: 'Что такое Moving Motivators' },
+      { to: '/moving-motivators/kartochki', name: 'Карточки мотиваторов' },
+      { to: '/moving-motivators/kak-provesti', name: 'Как провести' },
+      { to: '/moving-motivators/primenenie', name: 'Сценарии применения' },
+      { to: '/methods/health-check', name: 'Health Check команды' },
+    ],
   },
   types: {
     moving_motivators: 'Движущие мотиваторы',
@@ -47,6 +55,7 @@ export const ru = {
     closed: 'Завершён',
   } as Record<string, string>,
   landing: {
+    heroKicker: 'Moving Motivators онлайн',
     heroTitle: 'Узнайте, что на самом деле мотивирует вашу команду',
     heroText:
       'Онлайн-тест «Движущие мотиваторы» по методике Management 3.0: каждый участник раскладывает 10 карточек по важности, а вы получаете общую картину команды и готовые вопросы для разговора.',

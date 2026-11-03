@@ -1,61 +1,233 @@
 import { Link } from 'react-router'
-import { useCatalog } from '@/api/hooks'
 import { MotivatorCard } from '@/components/MotivatorCard'
 import { Page } from '@/components/Layout'
+import { motivators } from '@/content/motivators'
 import { t } from '@/i18n'
+import { textOn } from '@/lib/colors'
+import { ArticleLd, Breadcrumbs, Cta, Faq, ReadNext, type FaqItem } from './seo/Article'
+
+const PATH = '/methods/moving-motivators'
+const H1 = 'Moving Motivators: методика «Движущие мотиваторы» Management 3.0'
+
+const faq: FaqItem[] = [
+  {
+    q: 'Что такое Moving Motivators простыми словами?',
+    a: 'Это короткая игра с 10 карточками. Каждая карточка — одна из внутренних потребностей человека: любопытство, свобода, мастерство, статус и другие. Участник раскладывает их от наименее важной к самой важной для себя, а затем обсуждает расклад с руководителем или командой.',
+  },
+  {
+    q: 'Как переводится Moving Motivators?',
+    a: 'Дословно — «движущие мотиваторы», то есть то, что приводит человека в движение. В русскоязычном сообществе используют и оригинальное название, и переводы «Движущие мотиваторы», «Карты мотиваторов», «Игра в мотиваторы».',
+  },
+  {
+    q: 'Кто придумал Moving Motivators?',
+    a: 'Практику предложил Юрген Аппело (Jurgen Appelo), автор книг «Management 3.0» и «Managing for Happiness» и основатель движения Management 3.0. Модель опирается на работы Дэниела Пинка, Стивена Рейсса, Эдварда Деси и Ричарда Райана о внутренней мотивации.',
+  },
+  {
+    q: 'Что означает CHAMPFROGS?',
+    a: 'Это акроним из первых букв английских названий десяти мотиваторов: Curiosity (любопытство), Honor (честь), Acceptance (принятие), Mastery (мастерство), Power (власть), Freedom (свобода), Relatedness (взаимосвязь), Order (порядок), Goal (цель), Status (статус).',
+  },
+  {
+    q: 'Сколько времени занимает Moving Motivators?',
+    a: 'Онлайн-опрос участник проходит за 5–7 минут. Обсуждение результатов один на один занимает 20–30 минут, командная сессия — 45–90 минут в зависимости от размера команды и того, оцениваете ли вы предстоящие изменения.',
+  },
+  {
+    q: 'Есть ли правильный порядок карточек?',
+    a: 'Нет. Moving Motivators — не тест с правильными ответами и не психодиагностика. Любой расклад нормален: он отражает, что важно человеку сейчас. Ценность — в разговоре, который начинается после раскладки.',
+  },
+  {
+    q: 'Как часто проводить Moving Motivators?',
+    a: 'Мотивация меняется вместе с жизненными обстоятельствами, ролью и командой. Удобный ритм — раз в 6–12 месяцев, а также перед крупными изменениями: реорганизацией, сменой руководителя, переездом, переходом на удалёнку или возвратом в офис.',
+  },
+  {
+    q: 'Можно ли провести Moving Motivators онлайн и анонимно?',
+    a: 'Да. На movingmotivators.ru участники проходят опрос по ссылке без регистрации. В анонимном режиме сервис не спрашивает имя и не хранит IP-адрес — руководитель видит только общую картину команды. Для встреч 1-на-1 есть режим с именами.',
+  },
+]
 
 export default function MethodMotivatorsPage() {
-  const { data: catalog } = useCatalog()
   return (
     <Page wide>
       <article className="mx-auto max-w-3xl space-y-5 leading-relaxed">
-        <h1 className="text-3xl font-bold">{t.methods.mmTitle}</h1>
-        <p>
-          «Движущие мотиваторы» (Moving Motivators) — практика Management 3.0 Юргена Аппело. Она опирается на исследования
-          внутренней мотивации: людей двигают не только деньги и KPI, но и любопытство, свобода, мастерство, принадлежность к команде.
-          У каждого человека эти мотиваторы выстраиваются в свой порядок — и он меняется со временем.
+        <Breadcrumbs items={[{ path: PATH, name: 'Moving Motivators' }]} />
+        <ArticleLd path={PATH} headline={H1} />
+        <h1 className="text-3xl font-bold">{H1}</h1>
+        <p className="text-lg">
+          <b>Moving Motivators</b> («Движущие мотиваторы») — практика Management 3.0 Юргена Аппело, которая помогает понять,
+          что на самом деле мотивирует конкретного человека и команду. Людей двигают не только деньги и KPI, но и любопытство,
+          свобода, мастерство, принадлежность к команде. У каждого эти мотиваторы выстраиваются в свой порядок — и он меняется со временем.
         </p>
-        <h2 className="pt-2 text-xl font-bold">Как проходит опрос</h2>
+
+        <div className="panel">
+          <h2 className="mb-2 text-lg font-bold">Коротко о методике</h2>
+          <ul className="list-disc space-y-1 pl-6">
+            <li><b>Что это:</b> игра с 10 карточками внутренних мотиваторов (модель CHAMPFROGS).</li>
+            <li><b>Для кого:</b> руководители, тимлиды, HR, agile-коучи и скрам-мастера.</li>
+            <li><b>Сколько длится:</b> 5–7 минут на раскладку, 20–90 минут на обсуждение.</li>
+            <li><b>Результат:</b> понимание, что важно людям, и конкретные договорённости, как это поддержать.</li>
+          </ul>
+        </div>
+
+        <h2 className="pt-2 text-2xl font-bold">Откуда появилась методика</h2>
+        <p>
+          Юрген Аппело — нидерландский менеджер и автор книги «Management 3.0: Leading Agile Developers, Developing Agile Leaders».
+          В ней и в последующих работах он собрал практики для руководителей agile-команд, которые помогают управлять системой,
+          а не людьми. Moving Motivators — одна из самых известных таких практик; позже она вошла в книгу «Managing for Happiness» (2016).
+        </p>
+        <p>
+          Набор из десяти мотиваторов Аппело составил на основе нескольких исследований внутренней мотивации:
+        </p>
+        <ul className="list-disc space-y-1 pl-6">
+          <li><b>Дэниел Пинк, «Драйв» (Drive, 2009)</b> — автономия, мастерство и цель как три основы мотивации интеллектуального труда;</li>
+          <li><b>Эдвард Деси и Ричард Райан, теория самодетерминации</b> — базовые потребности в автономии, компетентности и связанности с другими;</li>
+          <li><b>Стивен Рейсс, «16 базовых желаний»</b> — модель фундаментальных мотивов, которые различаются по силе у разных людей.</li>
+        </ul>
+
+        <h2 className="pt-2 text-2xl font-bold">Внутренняя и внешняя мотивация</h2>
+        <p>
+          Внешняя мотивация — это зарплата, бонусы, штрафы, KPI: награды и наказания извне. Она хорошо работает для простых механических задач,
+          но для творческой и интеллектуальной работы её недостаточно, а иногда она даже вредит. Внутренняя мотивация возникает из самой работы:
+          интересно, получается, есть смысл, рядом хорошие люди.
+        </p>
+        <p>
+          Moving Motivators фокусируется именно на внутренней мотивации. Методика не заменяет разговор о деньгах и условиях труда,
+          но помогает увидеть то, что обычно остаётся за кадром: почему два сотрудника с одинаковой зарплатой и задачами чувствуют себя совершенно по-разному.
+        </p>
+
+        <h2 className="pt-2 text-2xl font-bold">10 мотиваторов модели CHAMPFROGS</h2>
+        <p>
+          Название CHAMPFROGS составлено из первых букв английских названий карточек. Каждая карточка содержит утверждение,
+          с которым участник соотносит свою текущую работу.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="text-left">
+              <tr><th className="py-2 pr-3"></th><th className="pr-3">Мотиватор</th><th>Утверждение на карточке</th></tr>
+            </thead>
+            <tbody>
+              {motivators.map((m) => (
+                <tr key={m.key} className="border-t border-zinc-200 dark:border-zinc-800">
+                  <td className="py-2 pr-3 align-top">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full font-slab font-bold" style={{ background: m.accentColor, color: textOn(m.accentColor) }}>{m.letter}</span>
+                  </td>
+                  <td className="py-2 pr-3 align-top whitespace-nowrap"><b>{m.name}</b><br /><span className="text-zinc-500">{m.englishName}</span></td>
+                  <td className="py-2 align-top">{m.statement}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Подробно о каждом мотиваторе — как его распознать и что может сделать руководитель — читайте в статье{' '}
+          <Link to="/moving-motivators/kartochki" className="underline">«Карточки Moving Motivators»</Link>.
+        </p>
+      </article>
+
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {motivators.map((m) => <MotivatorCard key={m.key} card={m} />)}
+      </div>
+
+      <article className="mx-auto mt-8 max-w-3xl space-y-5 leading-relaxed">
+        <h2 className="pt-2 text-2xl font-bold">Правила игры Moving Motivators</h2>
+        <p>Классическая игра состоит из двух шагов и обсуждения.</p>
+        <ol className="list-decimal space-y-2 pl-6">
+          <li>
+            <b>Ранжирование.</b> Участник раскладывает карточки в ряд: слева — наименее важные для него мотиваторы, справа — самые важные.
+            Важно отвечать про себя и свою реальную жизнь, а не про то, «как правильно».
+          </li>
+          <li>
+            <b>Влияние изменения.</b> Ведущий называет предстоящее или недавнее изменение — новую должность, реорганизацию, переезд.
+            Участник сдвигает карточку вверх, если изменение усилит мотиватор, и вниз, если ослабит. Особенно важно, что происходит
+            с карточками в правой части ряда.
+          </li>
+          <li>
+            <b>Обсуждение.</b> Участник рассказывает о раскладке, ведущий задаёт открытые вопросы. Итог — одна-две конкретные договорённости.
+          </li>
+        </ol>
+        <p>
+          Пошаговый сценарий с таймингом и вопросами — в статье{' '}
+          <Link to="/moving-motivators/kak-provesti" className="underline">«Как провести Moving Motivators»</Link>.
+        </p>
+
+        <h2 className="pt-2 text-2xl font-bold">Как интерпретировать результаты</h2>
+        <ul className="list-disc space-y-2 pl-6">
+          <li><b>Правый край ряда важнее левого.</b> Топ-3 мотиватора — то, что нужно беречь в первую очередь. Карточки слева не «плохие»: они просто сейчас меньше влияют на человека.</li>
+          <li><b>Нет правильного порядка.</b> Расклад отражает текущую ситуацию человека, а не его характер или профпригодность.</li>
+          <li><b>Командная картина — это распределение.</b> Если все поставили «Свободу» в топ, это сильный сигнал. Если мнения по карточке разошлись — это повод узнать друг друга, а не проблема.</li>
+          <li><b>Мотиваторы со стрелкой вниз в правой части — красный флаг.</b> Изменение угрожает самому важному, и его стоит обсудить до того, как оно произойдёт.</li>
+          <li><b>Динамика важнее снимка.</b> Повторите опрос через полгода-год и сравните: что сдвинулось и почему.</li>
+        </ul>
+
+        <h2 className="pt-2 text-2xl font-bold">Moving Motivators офлайн и онлайн</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="text-left">
+              <tr><th className="py-2 pr-4"></th><th className="pr-4">Физические карточки</th><th>Онлайн на movingmotivators.ru</th></tr>
+            </thead>
+            <tbody>
+              {[
+                ['Формат', 'Встреча в одной комнате', 'Ссылка, телефон или компьютер, команда может быть распределённой'],
+                ['Анонимность', 'Невозможна — все видят раскладку', 'Анонимный режим или режим с именами на выбор'],
+                ['Командная сводка', 'Вручную: фото, таблица, подсчёт', 'Автоматически: средний ранг, топ-3, тепловая карта'],
+                ['Оценка изменений', 'Двигаем карточки вверх/вниз', 'До 5 изменений, индекс влияния по каждому'],
+                ['История', 'Теряется', 'Сравнение опросов команды во времени'],
+              ].map(([k, off, on]) => (
+                <tr key={k} className="border-t border-zinc-200 dark:border-zinc-800">
+                  <td className="py-2 pr-4 align-top font-medium">{k}</td>
+                  <td className="py-2 pr-4 align-top">{off}</td>
+                  <td className="py-2 align-top">{on}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Физические карточки отлично подходят для живой встречи один на один. Онлайн-формат удобен, когда команда работает удалённо,
+          людей больше пяти или нужна честная анонимная картина.
+        </p>
+
+        <h2 className="pt-2 text-2xl font-bold">Как проходит онлайн-опрос в нашем сервисе</h2>
         <ol className="list-decimal space-y-2 pl-6">
           <li><b>Ранжирование.</b> Участник раскладывает 10 карточек от наименее важной к самой важной для себя.</li>
           <li><b>Влияние изменений</b> (если организатор включил). Для каждого предстоящего изменения — реорганизации, переезда,
             нового процесса — участник отмечает, какие мотиваторы станут лучше, а какие пострадают.</li>
           <li><b>Комментарий</b> — что ещё важно знать руководителю.</li>
         </ol>
-        <h2 className="pt-2 text-xl font-bold">Что вы получите</h2>
+        <h2 className="pt-2 text-2xl font-bold">Что вы получите</h2>
         <ul className="list-disc space-y-1 pl-6">
           <li>Средний ранг каждой карточки, топ-3 и анти-топ-3 команды.</li>
           <li>Тепловую карту распределения — где команда единодушна, а где мнения сильно расходятся.</li>
           <li>Индекс влияния каждого изменения по мотиваторам и общий итог, взвешенный по важности для команды.</li>
           <li>Подсказки и вопросы для разговора с командой.</li>
         </ul>
-        <h2 className="pt-2 text-xl font-bold">Как провести сессию по результатам</h2>
+        <h2 className="pt-2 text-2xl font-bold">Как провести сессию по результатам</h2>
         <ol className="list-decimal space-y-2 pl-6">
           <li>Покажите общую картину и топ-3 команды. Спросите: «Что вас удивило?»</li>
           <li>Обсудите карточки, где мнения разошлись, — это не проблема, а повод понять друг друга.</li>
           <li>Если оценивали изменения — начните с того, что угрожает главным мотиваторам команды.</li>
           <li>Договоритесь о 1–2 конкретных шагах и вернитесь к ним через квартал — повторным опросом.</li>
         </ol>
+        <p>
+          Примеры, когда это особенно полезно, — в статье{' '}
+          <Link to="/moving-motivators/primenenie" className="underline">«Где применять Moving Motivators»</Link>.
+        </p>
         <p className="rounded-lg bg-amber-50 p-4 text-sm dark:bg-amber-950/40">
           Результаты — повод для разговора, а не оценка сотрудников. Не используйте их как единственное основание для кадровых решений.
         </p>
-      </article>
 
-      {catalog && (
-        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {catalog.motivators.map((m) => <MotivatorCard key={m.key} card={m} />)}
-        </div>
-      )}
+        <Cta />
+        <Faq items={faq} />
+        <ReadNext current={PATH} />
 
-      <div className="mx-auto mt-10 max-w-3xl space-y-3">
-        <h2 className="text-xl font-bold">{t.methods.sources}</h2>
+        <h2 className="pt-2 text-xl font-bold">{t.methods.sources}</h2>
         <ul className="list-disc pl-6 text-sm">
           <li><a className="underline" href="https://management30.com/practice/moving-motivators/" target="_blank" rel="noreferrer">Moving Motivators — Management 3.0</a></li>
+          <li>Jurgen Appelo, «Management 3.0: Leading Agile Developers, Developing Agile Leaders», 2010.</li>
           <li>Jurgen Appelo, «Managing for Happiness», 2016.</li>
           <li>Daniel Pink, «Drive: The Surprising Truth About What Motivates Us», 2009.</li>
+          <li>Edward Deci, Richard Ryan, «Self-Determination Theory».</li>
+          <li>Steven Reiss, «Who Am I? The 16 Basic Desires That Motivate Our Actions», 2000.</li>
         </ul>
-        <Link to="/login" className="btn-primary mt-4">{t.landing.cta}</Link>
-      </div>
+      </article>
     </Page>
   )
 }

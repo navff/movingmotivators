@@ -17,6 +17,11 @@ services:
       Smtp__Username: "${SMTP_USERNAME}"
       Smtp__Password: "${SMTP_PASSWORD}"
       App__AdminEmails__0: "${ADMIN_EMAILS}"
+      # Monium: логи и трейсы; без ключа или проекта отправка просто выключена
+      Monium__Enabled: "${MONIUM__ENABLED:-false}"
+      Monium__ApiKey: "${MONIUM__APIKEY}"
+      Monium__Project: "${MONIUM_PROJECT}"
+      Monium__Cluster: "${MONIUM__CLUSTER:-production}"
     expose:
       - "8080"
     healthcheck:

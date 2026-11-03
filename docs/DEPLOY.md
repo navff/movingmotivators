@@ -106,7 +106,7 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 
 На вкладке **Environment Variables** задайте переменные из [.env.example](../.env.example). Галочку **Build Variable** (*Available at Buildtime*) ставить не нужно: образы собираются без секретов, переменные нужны только при запуске. Если `DB_CONNECTION_STRING` или `SMTP_HOST` не заданы, сборка пройдёт, но `api` не запустится, а в логе будет понятная ошибка с именем переменной.
 
-Переменных всего пять:
+Обязательные переменные:
 
 | Переменная | Значение |
 |---|---|
@@ -115,7 +115,16 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 | `SMTP_USERNAME`, `SMTP_PASSWORD` | логин и пароль приложения почтового ящика |
 | `ADMIN_EMAILS` | ваш email для доступа к `/admin`; несколько — через запятую |
 
-Пароли отметьте как **секреты** (*Is Secret / Lock*), чтобы они не показывались в логах сборки.
+Наблюдаемость в Monium, по желанию (подробнее в разделе [Monium](#monium-логи-и-трейсы)):
+
+| Переменная | Значение |
+|---|---|
+| `MONIUM__ENABLED` | `true` |
+| `MONIUM__APIKEY` | API-ключ сервисного аккаунта |
+| `MONIUM_PROJECT` | ID проекта Monium |
+| `MONIUM__CLUSTER` | `production` |
+
+Пароли и ключи отметьте как **секреты** (*Is Secret / Lock*), чтобы они не показывались в логах сборки.
 
 Остальные настройки лежат в [appsettings.json](../backend/src/Motivators.Api/appsettings.json): реквизиты ИП, цены, адрес сайта `https://movingmotivators.ru`, отправитель писем, SMTP-порт 465 с SSL. Чтобы поменять их, правьте файл и делайте push. Срочно, без коммита, любой ключ можно переопределить переменной вида `Секция__Ключ` прямо в Coolify. Например, если провайдер работает на порту 587: `Smtp__Port=587` и `Smtp__Security=starttls`.
 
@@ -164,6 +173,55 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 1. В ресурсе базы откройте **Backups** → выберите бэкап → **Restore** (или скачайте дамп из S3 и восстановите через `pg_restore`).
 2. Перед восстановлением остановите приложение (**Stop**), чтобы во время восстановления не шли записи.
 3. Запустите приложение снова.
+
+## Monium: логи и трейсы
+
+Если заданы переменные `MONIUM__*`, `api` отправляет телеметрию в [Monium](https://yandex.cloud/ru/docs/monium/collector/otlp-protocol) по OTLP/HTTP на `ingest.monium.yandex.cloud`:
+
+- **Логи** — все записи Serilog с trace id, так что из лога можно перейти к трейсу. Метки: проект из `MONIUM_PROJECT`, `cluster` из `MONIUM__CLUSTER`, `service=api`.
+- **Трейсы** — входящие HTTP-запросы, SQL-запросы к PostgreSQL и раз в минуту спан `maintenance` (закрытие опросов по сроку, очистка).
+- **Не отправляются** IP-адреса, user-agent и query-строки: они вырезаются из спанов до отправки (анонимность участников, §6 SPEC). `/health` не трейсится.
+
+Метрики не отправляются, только логи и трейсы.
+
+**Подготовка в Yandex Cloud**
+1. Создайте сервисный аккаунт и выдайте ему роль на **проект** Monium (или на каталог либо облако, где он находится). В документации роль встречается под двумя похожими именами: `monium.telemetry.writer` (роль) и `yc.monium.telemetry.write` (область действия ключа). Точное имя роли сверьте в консоли IAM.
+2. Создайте для аккаунта **API-ключ** с областью действия `yc.monium.telemetry.write` (или `yc.monium.logs.write` + `yc.monium.traces.write`).
+3. ID проекта возьмите в Monium.
+
+**Как понять, что телеметрия доходит**
+
+Главный признак — **лог `api` при старте и во время работы**:
+
+| В логе | Что значит |
+|---|---|
+| `Monium: отправка включена, проект …, кластер production, сервис api` | Конфигурация принята. Если предупреждений ниже нет, данные доходят. |
+| `Monium: отправка выключена — …` | Не задан ключ или проект, либо неверный эндпоинт; причина указана в строке. |
+| `Телеметрия HttpRequestFailed: … Response: Unknown api key …` | Ошибка отправки трейсов, причина в ответе Monium. |
+| `warn: Телеметрия (логи): … failed emitting a batch` | Ошибка отправки логов. |
+
+Ошибки экспорта сами по себе молчат, поэтому их перехватывает [MoniumDiagnostics.cs](../backend/src/Motivators.Api/Infrastructure/MoniumDiagnostics.cs) и пишет в лог, одинаковые — не чаще раза в минуту. Приложение при этом не падает, логи по-прежнему видны в Coolify.
+
+Ключ можно проверить и вручную, но **только по пути с `/otlp`**:
+
+```bash
+curl -s -w " [%{http_code}]\n" -X POST https://ingest.monium.yandex.cloud/otlp/v1/logs \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Api-Key $MONIUM__APIKEY" \
+  -H "x-monium-project: $MONIUM_PROJECT" \
+  -d '{"resourceLogs":[]}'
+```
+
+- `{"partialSuccess":{…}} [200]` — ключ и проект в порядке.
+- `{"code":7, "message":"authorization failed…"} [403]` — у аккаунта нет роли или у ключа нет нужной области действия, либо неверный проект.
+- **`Hello! This is Monium. [200]` — проверка ничего не значит:** запрос ушёл не на тот путь (например, `/v1/logs` без `/otlp`), и ингест ответил заглушкой. По той же причине приложение не запускает отправку, если `Monium:Endpoint` не оканчивается на `/otlp`: экспортёр принял бы заглушку за успех, и данные пропадали бы молча.
+
+**Если в Monium пусто, а предупреждений в логе нет** — скорее всего, вы смотрите не в тот кластер. Проверьте метку `cluster` в фильтре: в продакшене это `production` (`MONIUM__CLUSTER`), при локальном запуске (`ASPNETCORE_ENVIRONMENT=Development`) — `development`. Нужный кластер указан в строке `Monium: отправка включена…` при старте.
+
+**Шум в логах уже убран:**
+- успешные SQL-команды EF (`Executed DbCommand`) понижены до Debug в самом источнике; проверяет [DatabaseLogNoiseTests.cs](../backend/tests/Motivators.IntegrationTests/DatabaseLogNoiseTests.cs). SQL видно в трейсах;
+- служебные записи исходящих HTTP-запросов (`System.Net.Http.HttpClient`) — только Warning и выше;
+- в теле лога — готовый текст сообщения, а не шаблон с фигурными скобками. Шаблон дополнительно лежит в атрибуте `message_template.text`, по нему удобно группировать одинаковые события.
 
 ## Логи и диагностика
 

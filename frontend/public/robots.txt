@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /app
+Disallow: /admin
+Disallow: /s/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /account/
+Disallow: /onboarding
+Disallow: /login
+
+Sitemap: https://movingmotivators.ru/sitemap.xml
