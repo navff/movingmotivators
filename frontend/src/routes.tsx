@@ -2,11 +2,16 @@ import { lazy, Suspense, type ComponentType } from 'react'
 import { Link, type RouteObject } from 'react-router'
 import { SiteLayout, RequireAuth, Page } from './components/Layout'
 import { Spinner } from './components/ui'
+import { RouteError } from './components/RouteError'
+import { withChunkReload } from './lib/chunkReload'
 import { t } from './i18n'
 
-/** Каждая страница — отдельный chunk; страница участника особенно лёгкая. */
+/**
+ * Каждая страница — отдельный chunk; страница участника особенно лёгкая.
+ * Чанк из сборки до деплоя уже удалён — тогда страница тихо перезагружается (lib/chunkReload).
+ */
 function page(load: () => Promise<{ default: ComponentType }>) {
-  const C = lazy(load)
+  const C = lazy(withChunkReload(load))
   return (
     <Suspense fallback={<Spinner />}>
       <C />
@@ -26,9 +31,10 @@ function NotFound() {
 /** Браузер создаёт из них browser router (main.tsx), пререндер — memory router в Node (src/prerender.tsx). */
 export const routes: RouteObject[] = [
   // прохождение — отдельный лёгкий layout без шапки кабинета
-  { path: '/s/:code', element: page(() => import('./features/respond/RespondPage')) },
+  { path: '/s/:code', element: page(() => import('./features/respond/RespondPage')), errorElement: <RouteError /> },
   {
     element: <SiteLayout />,
+    errorElement: <RouteError />,
     children: [
       { path: '/', element: page(() => import('./pages/LandingPage')) },
       { path: '/methods/moving-motivators', element: page(() => import('./pages/MethodMotivatorsPage')) },

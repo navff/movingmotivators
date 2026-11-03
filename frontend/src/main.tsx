@@ -9,6 +9,12 @@ import '@fontsource/roboto-slab/latin-700.css'
 import './index.css'
 import { routes } from './routes'
 import { ApiError } from './api/client'
+import { reloadOnce } from './lib/chunkReload'
+
+// Vite не смог предзагрузить зависимость чанка (CSS/JS из старой сборки) — та же история, что и с import()
+window.addEventListener('vite:preloadError', (e) => {
+  if (reloadOnce()) e.preventDefault()
+})
 
 const queryClient = new QueryClient({
   defaultOptions: {
