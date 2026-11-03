@@ -48,6 +48,7 @@ public class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Logging:Json", "false");
         builder.UseSetting("App:BaseUrl", "https://localhost");
         builder.UseSetting("App:AdminEmails:0", AdminEmail);
+        builder.UseSetting("Smtp:Host", "localhost"); // отправка подменена CapturingEmailSender
         builder.UseSetting("RateLimits:AuthLinkPerIpPerHour", "1000");
         builder.UseSetting("RateLimits:PublicSubmitPerIpPerMinute", "1000");
         builder.UseSetting("Auth:LinksPerEmailPerHour", "100");

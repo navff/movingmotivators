@@ -28,16 +28,12 @@ services:
   api:
     build:
       context: ./backend
+    # остальное — из appsettings.Development.json (админ admin@example.com, Mailpit-порт 1025)
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      Logging__Json: "false"
-      ConnectionStrings__Default: Host=db;Database=motivators;Username=postgres;Password=postgres
-      Db__MigrateOnStartup: "true"
-      App__BaseUrl: http://localhost:8081
-      App__AdminEmails__0: admin@example.com
+      ConnectionStrings__Default: "Host=db;Database=motivators;Username=postgres;Password=postgres"
+      App__BaseUrl: "http://localhost:8081"
       Smtp__Host: mailpit
-      Smtp__Port: "1025"
-      Smtp__Security: none
     depends_on:
       db:
         condition: service_healthy
