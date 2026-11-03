@@ -1,0 +1,40 @@
+<p style="margin:0 0 16px;font-size:17px;"><strong>Опрос «{{ surveyTitle }}» команды «{{ teamName }}» завершён: {{ responseCount }} {% if responseCount == 1 %}ответ{% elsif responseCount > 1 and responseCount < 5 %}ответа{% else %}ответов{% endif %}.</strong></p>
+{% if responseCount == 0 %}
+<p style="margin:0 0 20px;">Никто не ответил. Можно переоткрыть опрос, продлить срок и ещё раз отправить ссылку команде.</p>
+{% elsif isMotivators %}
+<p style="margin:0 0 8px;font-weight:bold;">Самые важные мотиваторы команды</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+  {% for c in top3 %}
+  <tr><td style="padding:3px 0;"><span style="display:inline-block;padding:6px 14px;border-radius:6px;background:{{ c.color }};color:{{ c.textColor }};font-weight:bold;font-size:14px;text-transform:uppercase;">{{ forloop.index }}. {{ c.name }}</span></td></tr>
+  {% endfor %}
+</table>
+<p style="margin:0 0 8px;font-weight:bold;">Наименее важные</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+  {% for c in bottom3 %}
+  <tr><td style="padding:3px 0;"><span style="display:inline-block;padding:4px 12px;border-radius:6px;border:2px solid {{ c.color }};color:#1A1A1A;font-size:13px;">{{ c.name }}</span></td></tr>
+  {% endfor %}
+</table>
+{% if painfulChange %}
+<p style="margin:0 0 20px;padding:12px 14px;background:#FEF2F2;border-left:4px solid #E5484D;border-radius:4px;">Самое болезненное изменение для команды: <strong>«{{ painfulChange.text }}»</strong> (индекс влияния {{ painfulChange.overall }})</p>
+{% endif %}
+{% else %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;border-collapse:collapse;font-size:14px;">
+  {% for c in categories %}
+  <tr>
+    <td style="padding:6px 8px;border-bottom:1px solid #F4F4F5;"><span style="display:inline-block;width:12px;height:12px;border-radius:6px;background:{{ c.color }};vertical-align:middle;"></span>&nbsp; {{ c.name }}</td>
+    <td style="padding:6px 8px;border-bottom:1px solid #F4F4F5;color:#52525B;">{{ c.label }}</td>
+    <td style="padding:6px 8px;border-bottom:1px solid #F4F4F5;text-align:right;">{{ c.avg }} {{ c.trend }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% if focus.size > 0 %}
+<p style="margin:0 0 20px;padding:12px 14px;background:#FFFBEB;border-left:4px solid #F2C230;border-radius:4px;">Обсудите в первую очередь: <strong>{{ focus | join: ", " }}</strong></p>
+{% endif %}
+{% endif %}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
+  <tr>
+    <td style="border-radius:8px;background:#493082;">
+      <a href="{{ reportUrl }}" style="display:inline-block;padding:12px 28px;color:#FFFFFF;text-decoration:none;font-weight:bold;font-size:16px;">Открыть полный отчёт</a>
+    </td>
+  </tr>
+</table>

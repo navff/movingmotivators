@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-slab: 'Roboto Slab', Georgia, serif;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --color-brand: #493082;
+  --color-brand-600: #3d2870;
+  --color-brand-50: #f3effa;
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-zinc-50 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100;
+  }
+  h1, h2, h3 {
+    @apply font-slab;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand;
+  }
+}
+
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-base font-medium transition
+    disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-brand text-white hover:bg-brand-600;
+}
+@utility btn-secondary {
+  @apply btn border border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-100
+    dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800;
+}
+@utility btn-danger {
+  @apply btn bg-red-600 text-white hover:bg-red-700;
+}
+@utility btn-ghost {
+  @apply btn text-brand hover:bg-brand-50 dark:text-violet-300 dark:hover:bg-zinc-800;
+}
+@utility input {
+  @apply block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base text-zinc-900
+    placeholder:text-zinc-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30
+    dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100;
+}
+@utility label {
+  @apply mb-1.5 block text-sm font-medium text-zinc-700 dark:text-zinc-300;
+}
+@utility hint {
+  @apply mt-1 text-sm text-zinc-500 dark:text-zinc-400;
+}
+@utility panel {
+  @apply rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900;
+}
+@utility error-text {
+  @apply text-sm text-red-600 dark:text-red-400;
+}
+
+@layer components {
+  /* ---------- карточка мотиватора (всегда белая, как физическая) ---------- */
+  .mm-card {
+    @apply flex flex-col overflow-hidden bg-white text-zinc-900;
+    border: 1px solid #c7c7c7;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
+    font-family: var(--font-slab);
+  }
+  .mm-card-header {
+    @apply px-2 py-1.5 text-center font-bold uppercase tracking-wide;
+    font-size: 0.95rem;
+  }
+  .mm-card-ruler {
+    height: 7px;
+    background: repeating-linear-gradient(90deg, #8a8a8a 0 1px, transparent 1px 6px);
+    opacity: 0.6;
+  }
+  .mm-bubble {
+    @apply relative mx-2 mb-4 text-center;
+    background: #abe0f9;
+    border: 3px solid #000;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 13px;
+    line-height: 1.25;
+  }
+  .mm-bubble::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -11px;
+    transform: translateX(-50%);
+    border-width: 10px 8px 0;
+    border-style: solid;
+    border-color: #000 transparent transparent;
+  }
+  .mm-bubble::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    transform: translateX(-50%);
+    border-width: 6px 5px 0;
+    border-style: solid;
+    border-color: #abe0f9 transparent transparent;
+    z-index: 1;
+  }
+}

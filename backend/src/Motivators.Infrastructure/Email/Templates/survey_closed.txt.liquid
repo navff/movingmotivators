@@ -1,0 +1,16 @@
+Опрос «{{ surveyTitle }}» команды «{{ teamName }}» завершён: ответов — {{ responseCount }}.
+{% if responseCount == 0 %}
+Никто не ответил. Можно переоткрыть опрос, продлить срок и ещё раз отправить ссылку команде.
+{% elsif isMotivators %}
+Самые важные мотиваторы команды:
+{% for c in top3 %}{{ forloop.index }}. {{ c.name }}
+{% endfor %}
+Наименее важные: {% for c in bottom3 %}{{ c.name }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+{% if painfulChange %}
+Самое болезненное изменение: «{{ painfulChange.text }}» (индекс влияния {{ painfulChange.overall }})
+{% endif %}{% else %}
+{% for c in categories %}- {{ c.name }}: {{ c.label }} ({{ c.avg }}) {{ c.trend }}
+{% endfor %}{% if focus.size > 0 %}
+Обсудите в первую очередь: {{ focus | join: ", " }}
+{% endif %}{% endif %}
+Полный отчёт: {{ reportUrl }}

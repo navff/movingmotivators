@@ -1,0 +1,55 @@
+# Локальная разработка.
+#   Всё в контейнерах:  docker compose -f docker-compose.dev.yml up --build
+#     сайт http://localhost:8081 · почта (Mailpit) http://localhost:8025 · Postgres localhost:5432
+#   Только зависимости: docker compose -f docker-compose.dev.yml up db mailpit
+#     + `dotnet run` в backend/src/Motivators.Api (порт 8080) и `npm run dev` в frontend (порт 5173, прокси /api).
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: motivators
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Logging__Json: "false"
+      ConnectionStrings__Default: Host=db;Database=motivators;Username=postgres;Password=postgres
+      Db__MigrateOnStartup: "true"
+      App__BaseUrl: http://localhost:8081
+      App__AdminEmails__0: admin@example.com
+      Smtp__Host: mailpit
+      Smtp__Port: "1025"
+      Smtp__Security: none
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8081:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
