@@ -11,5 +11,8 @@ export function useMediaQuery(query: string) {
   return matches
 }
 
-/** Ряд из 10 full-карточек помещается без обрезки формулировок только от ~1024px. */
-export const useIsDesktop = () => useMediaQuery('(min-width: 1024px)')
+/**
+ * Горизонтальный ряд из 10 full-карточек — от 1200px: карточка не уже ~110px, формулировки
+ * читаются без мелкого шрифта. Уже — вертикальный список compact-карточек.
+ */
+export const useIsDesktop = () => useMediaQuery('(min-width: 1200px)')

@@ -63,16 +63,26 @@
 
 @layer components {
   /* ---------- карточка мотиватора (всегда белая, как физическая) ---------- */
+  /*
+   * Размеры текста — от ширины самой карточки (container query), а не окна: в ряду из 10 карточек
+   * при прохождении на десктопе карточка ~100–130px, в сетке лендинга — 200px+.
+   * Формулировку не обрезаем (SPEC §11): шрифт уменьшается, длинные слова переносятся по слогам.
+   */
   .mm-card {
     @apply flex flex-col overflow-hidden bg-white text-zinc-900;
+    container-type: inline-size;
     border: 1px solid #c7c7c7;
     border-radius: 12px;
     box-shadow: 0 2px 6px rgb(0 0 0 / 0.12);
     font-family: var(--font-slab);
   }
   .mm-card-header {
-    @apply px-2 py-1.5 text-center font-bold uppercase tracking-wide;
-    font-size: 0.95rem;
+    @apply py-1.5 text-center font-bold uppercase;
+    padding-inline: clamp(2px, 3cqi, 8px);
+    /* «ВЗАИМОСВЯЗЬ» — самое длинное название; влезает в карточку от ~95px */
+    font-size: clamp(0.6rem, 10.5cqi, 0.95rem);
+    letter-spacing: clamp(0px, 0.4cqi, 0.025em);
+    white-space: nowrap;
   }
   .mm-card-ruler {
     height: 7px;
@@ -80,13 +90,17 @@
     opacity: 0.6;
   }
   .mm-bubble {
-    @apply relative mx-2 mb-4 text-center;
+    @apply relative mb-4 text-center;
+    margin-inline: clamp(4px, 5cqi, 8px);
     background: #abe0f9;
-    border: 3px solid #000;
+    border: clamp(2px, 2.2cqi, 3px) solid #000;
     border-radius: 6px;
-    padding: 6px 8px;
-    font-size: 13px;
+    padding: 6px clamp(3px, 4cqi, 8px);
+    font-size: clamp(10px, 10cqi, 13px);
     line-height: 1.25;
+    /* lang="ru" у <html> — переносы по правилам русского языка; break-word — последний рубеж */
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
   .mm-bubble::after {
     content: '';

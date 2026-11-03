@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { MotivatorCardInfo } from '@/api/types'
 import { textOn } from '@/lib/colors'
+import { hyphenate } from '@/lib/hyphenate'
 
 // SVG (если положить {key}.svg из Figma) приоритетнее PNG.
 const files = import.meta.glob<string>('../assets/motivators/*.{png,svg}', {
@@ -76,7 +77,7 @@ export function MotivatorCard({ card, mode = 'full', showEnglish, className = ''
       <div className="flex flex-1 items-center justify-center px-3 py-2" style={{ minHeight: '5.5rem' }}>
         {img && <img src={img} alt="" loading="lazy" className="max-h-24 max-w-[85%] object-contain" />}
       </div>
-      <div className="mm-bubble">{card.statement}</div>
+      <div className="mm-bubble">{hyphenate(card.statement)}</div>
     </div>
   )
 }
