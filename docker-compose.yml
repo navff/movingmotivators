@@ -46,9 +46,10 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
     restart: unless-stopped
+    # не ждём healthy: если api/БД недоступны, сайт всё равно отдаёт статику,
+    # а Traefik не отвечает «no available server» на весь домен
     depends_on:
-      api:
-        condition: service_healthy
+      - api
     expose:
       - "80"
     healthcheck:
@@ -56,3 +57,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      # Traefik не шлёт трафик, пока контейнер в статусе starting — первая проверка сразу
+      start_period: 10s
+      start_interval: 2s
