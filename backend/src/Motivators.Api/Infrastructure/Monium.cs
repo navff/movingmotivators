@@ -31,7 +31,7 @@ public class MoniumOptions
     public string? Problem()
     {
         if (string.IsNullOrWhiteSpace(ApiKey)) return "не задан Monium:ApiKey (MONIUM__APIKEY)";
-        if (string.IsNullOrWhiteSpace(Project)) return "не задан Monium:Project (MONIUM_PROJECT)";
+        if (string.IsNullOrWhiteSpace(Project)) return "не задан Monium:Project (MONIUM__PROJECT)";
         // Ингест отвечает «200 Hello! This is Monium.» на любой путь без /otlp — экспортёр
         // считает это успехом, и телеметрия молча пропадает. Поэтому неверный путь — ошибка конфигурации.
         if (!Uri.TryCreate(Endpoint, UriKind.Absolute, out var uri) || !uri.AbsolutePath.TrimEnd('/').EndsWith("/otlp", StringComparison.Ordinal))

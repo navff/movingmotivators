@@ -20,7 +20,7 @@ services:
       # Monium: логи и трейсы; без ключа или проекта отправка просто выключена
       Monium__Enabled: "${MONIUM__ENABLED:-false}"
       Monium__ApiKey: "${MONIUM__APIKEY}"
-      Monium__Project: "${MONIUM_PROJECT}"
+      Monium__Project: "${MONIUM__PROJECT}"
       Monium__Cluster: "${MONIUM__CLUSTER:-production}"
     expose:
       - "8080"

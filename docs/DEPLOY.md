@@ -121,7 +121,7 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 |---|---|
 | `MONIUM__ENABLED` | `true` |
 | `MONIUM__APIKEY` | API-ключ сервисного аккаунта |
-| `MONIUM_PROJECT` | ID проекта Monium |
+| `MONIUM__PROJECT` | ID проекта Monium |
 | `MONIUM__CLUSTER` | `production` |
 
 Пароли и ключи отметьте как **секреты** (*Is Secret / Lock*), чтобы они не показывались в логах сборки.
@@ -178,7 +178,7 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 
 Если заданы переменные `MONIUM__*`, `api` отправляет телеметрию в [Monium](https://yandex.cloud/ru/docs/monium/collector/otlp-protocol) по OTLP/HTTP на `ingest.monium.yandex.cloud`:
 
-- **Логи** — все записи Serilog с trace id, так что из лога можно перейти к трейсу. Метки: проект из `MONIUM_PROJECT`, `cluster` из `MONIUM__CLUSTER`, `service=api`.
+- **Логи** — все записи Serilog с trace id, так что из лога можно перейти к трейсу. Метки: проект из `MONIUM__PROJECT`, `cluster` из `MONIUM__CLUSTER`, `service=api`.
 - **Трейсы** — входящие HTTP-запросы, SQL-запросы к PostgreSQL и раз в минуту спан `maintenance` (закрытие опросов по сроку, очистка).
 - **Не отправляются** IP-адреса, user-agent и query-строки: они вырезаются из спанов до отправки (анонимность участников, §6 SPEC). `/health` не трейсится.
 
@@ -208,7 +208,7 @@ https://movingmotivators.ru,https://www.movingmotivators.ru
 curl -s -w " [%{http_code}]\n" -X POST https://ingest.monium.yandex.cloud/otlp/v1/logs \
   -H "Content-Type: application/json" \
   -H "Authorization: Api-Key $MONIUM__APIKEY" \
-  -H "x-monium-project: $MONIUM_PROJECT" \
+  -H "x-monium-project: $MONIUM__PROJECT" \
   -d '{"resourceLogs":[]}'
 ```
 
