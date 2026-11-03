@@ -8,30 +8,30 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__Default: ${DB_CONNECTION_STRING:?}
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__Default: "${DB_CONNECTION_STRING:?}"
       Db__MigrateOnStartup: "true"
-      App__BaseUrl: ${APP_BASE_URL:-https://movingmotivators.ru}
-      App__ProductName: ${APP_PRODUCT_NAME:-Движущие Мотиваторы: онлайн-тест}
-      App__AdminEmails__0: ${APP_ADMIN_EMAILS:-}
-      App__ShowEnglishCardNames: ${APP_SHOW_ENGLISH_CARD_NAMES:-false}
-      Pricing__FreeMaxParticipants: ${PRICING_FREE_MAX_PARTICIPANTS:-8}
-      Pricing__SurveyPriceRub: ${PRICING_SURVEY_PRICE_RUB:-299}
-      Pricing__CheckoutMode: ${PRICING_CHECKOUT_MODE:-fake}
-      Smtp__Host: ${SMTP_HOST:?}
-      Smtp__Port: ${SMTP_PORT:-465}
-      Smtp__Security: ${SMTP_SECURITY:-ssl}
-      Smtp__Username: ${SMTP_USERNAME:-}
-      Smtp__Password: ${SMTP_PASSWORD:-}
-      Smtp__From: ${SMTP_FROM:-no-reply@movingmotivators.ru}
-      Smtp__FromName: ${SMTP_FROM_NAME:-Движущие Мотиваторы}
-      Smtp__ReplyTo: ${SMTP_REPLY_TO:-support@movingmotivators.ru}
-      Legal__Name: ${LEGAL_NAME:-ИП Варнавский Владимир Николаевич}
-      Legal__ShortName: ${LEGAL_SHORT_NAME:-ИП Варнавский В. Н.}
-      Legal__Inn: ${LEGAL_INN:-352826429326}
-      Legal__Ogrnip: ${LEGAL_OGRNIP:-308352816800157}
-      Legal__Address: ${LEGAL_ADDRESS:-162642, Вологодская обл., Череповецкий р-н, д. Шайма, ул. Вологодская, д. 11}
-      Legal__Email: ${LEGAL_EMAIL:-support@movingmotivators.ru}
+      App__BaseUrl: "${APP_BASE_URL:-https://movingmotivators.ru}"
+      App__ProductName: "${APP_PRODUCT_NAME:-Движущие Мотиваторы: онлайн-тест}"
+      App__AdminEmails__0: "${APP_ADMIN_EMAILS:-}"
+      App__ShowEnglishCardNames: "${APP_SHOW_ENGLISH_CARD_NAMES:-false}"
+      Pricing__FreeMaxParticipants: "${PRICING_FREE_MAX_PARTICIPANTS:-8}"
+      Pricing__SurveyPriceRub: "${PRICING_SURVEY_PRICE_RUB:-299}"
+      Pricing__CheckoutMode: "${PRICING_CHECKOUT_MODE:-fake}"
+      Smtp__Host: "${SMTP_HOST:?}"
+      Smtp__Port: "${SMTP_PORT:-465}"
+      Smtp__Security: "${SMTP_SECURITY:-ssl}"
+      Smtp__Username: "${SMTP_USERNAME:-}"
+      Smtp__Password: "${SMTP_PASSWORD:-}"
+      Smtp__From: "${SMTP_FROM:-no-reply@movingmotivators.ru}"
+      Smtp__FromName: "${SMTP_FROM_NAME:-Движущие Мотиваторы}"
+      Smtp__ReplyTo: "${SMTP_REPLY_TO:-support@movingmotivators.ru}"
+      Legal__Name: "${LEGAL_NAME:-ИП Варнавский Владимир Николаевич}"
+      Legal__ShortName: "${LEGAL_SHORT_NAME:-ИП Варнавский В. Н.}"
+      Legal__Inn: "${LEGAL_INN:-352826429326}"
+      Legal__Ogrnip: "${LEGAL_OGRNIP:-308352816800157}"
+      Legal__Address: "${LEGAL_ADDRESS:-162642, Вологодская обл., Череповецкий р-н, д. Шайма, ул. Вологодская, д. 11}"
+      Legal__Email: "${LEGAL_EMAIL:-support@movingmotivators.ru}"
     expose:
       - "8080"
     healthcheck:

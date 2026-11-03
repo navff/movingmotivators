@@ -58,16 +58,9 @@ dotnet test tests/Motivators.IntegrationTests   # нужен Docker: подни�
 
 ## Деплой в Coolify
 
-1. **Сервер.** VPS Timeweb Cloud (ДЦ в РФ) с установленным Coolify. DNS: `movingmotivators.ru` и `www` → IP сервера.
-2. **PostgreSQL.** *New Resource → Database → PostgreSQL 17*. Включите *Scheduled Backups*: ежедневно, хранение 14 дней, S3-хранилище Timeweb Cloud. Скопируйте внутреннюю строку подключения.
-3. **Приложение.** *New Resource → Docker Compose* из Git-репозитория, файл `docker-compose.yml`, автодеплой по push.
-   - В *Environment Variables* задайте переменные из [.env.example](.env.example) — как минимум `DB_CONNECTION_STRING`, `SMTP_*`, `APP_ADMIN_EMAILS`.
-   - Домен `https://movingmotivators.ru` назначьте сервису **web** (порт 80). Coolify/Traefik выпустит сертификат Let's Encrypt.
-   - Редирект `www` → корень: добавьте `https://www.movingmotivators.ru` к сервису web и включите в Coolify редирект на основной домен (*Redirect to non-www*).
-4. **Почта.** У российского провайдера (Unisender Go, Яндекс 360 и т. п.) настройте SPF, DKIM и DMARC для домена и ящик `support@movingmotivators.ru`.
-5. После деплоя проверьте `https://movingmotivators.ru/health` → `Healthy`.
+Пошаговая инструкция — **[docs/DEPLOY.md](docs/DEPLOY.md)**: DNS, S3 для бэкапов, PostgreSQL, ресурс Docker Compose, переменные окружения, почта (SPF/DKIM/DMARC), проверка после деплоя, обновления, откат и диагностика.
 
-Миграции применяются при старте `api` (`Db:MigrateOnStartup=true`; инстанс один, гонок нет). Логи — JSON в stdout, смотрятся в Coolify.
+Коротко: база — отдельный ресурс PostgreSQL 17 с ежедневным бэкапом в S3; приложение — ресурс Docker Compose из `docker-compose.yml` с опцией *Connect To Predefined Network*; домены `movingmotivators.ru` и `www` назначаются сервису `web` (редирект `www` делает nginx); переменные берутся из [.env.example](.env.example).
 
 ## Конфигурация
 
