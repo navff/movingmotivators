@@ -19,7 +19,7 @@ export const seoPages: Record<string, PageMeta> = {
   '/': {
     title: 'Moving Motivators онлайн — тест «Движущие мотиваторы» для команды',
     description:
-      'Проведите Moving Motivators онлайн: 10 карточек мотиваторов Management 3.0, анонимный опрос команды за 5 минут, сводка и вопросы для обсуждения. До 8 человек — бесплатно.',
+      'Проведите Moving Motivators онлайн: 10 карточек мотиваторов Management 3.0, анонимный опрос команды за 7 минут, сводка и вопросы для обсуждения. До 8 человек — бесплатно.',
     priority: 1,
   },
   '/methods/moving-motivators': {

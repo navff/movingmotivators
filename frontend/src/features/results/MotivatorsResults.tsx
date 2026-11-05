@@ -75,12 +75,43 @@ function TeamTab({ result, cards }: { result: MotivatorsResult; cards: Cards }) 
         </div>
       </section>
 
+      <RatingsSection result={result} cards={cards} />
+
       <section>
         <h2 className="mb-1 text-xl font-bold">{t.results.heatmap}</h2>
         <p className="mb-4 text-sm text-zinc-500">{t.results.heatmapHint}</p>
         <Heatmap result={result} cards={cards} />
       </section>
     </div>
+  )
+}
+
+/** Важность vs развитость: сверху самое важное, подсвечены важные и слабо развитые (порог считает backend). */
+function RatingsSection({ result, cards }: { result: MotivatorsResult; cards: Cards }) {
+  if (!result.cards.some((c) => c.avgRating != null)) return null
+  const weak = new Set(result.prompts.filter((p) => p.kind === 'low_rated_top_card').map((p) => p.cardKey))
+  return (
+    <section>
+      <h2 className="mb-1 text-xl font-bold">{t.results.ratingTitle}</h2>
+      <p className="mb-4 text-sm text-zinc-500">{t.results.ratingHint}</p>
+      <div className="space-y-2">
+        {result.cards.map((c) => {
+          const card = cards.get(c.key)!
+          const avg = c.avgRating ?? 0
+          return (
+            <div key={c.key} className="grid grid-cols-[8.5rem_1fr_auto] items-center gap-3 sm:grid-cols-[11rem_1fr_13rem]">
+              <Chip card={card} />
+              <div className="h-6 rounded bg-zinc-100 dark:bg-zinc-800" title={(c.ratingDistribution ?? []).map((n, i) => `${i + 1}★: ${n}`).join(' · ')}>
+                <div className="flex h-6 items-center justify-end rounded bg-amber-400 pr-2 text-xs font-bold" style={{ width: `${(avg / 5) * 100}%` }}>
+                  <span className="rounded bg-white/85 px-1 text-zinc-900">{avg.toFixed(1)}</span>
+                </div>
+              </div>
+              <span className="text-xs font-medium text-red-700 dark:text-red-400">{weak.has(c.key) ? t.results.ratingLow : ''}</span>
+            </div>
+          )
+        })}
+      </div>
+    </section>
   )
 }
 
@@ -273,6 +304,42 @@ function ParticipantsTab({ result, cards }: { result: MotivatorsResult; cards: C
         </table>
         <p className="hint">10 — {t.results.moreImportant.toLowerCase()}, 1 — {t.results.lessImportant.toLowerCase()}</p>
       </div>
+
+      {participants.some((p) => p.ratings) && (
+        <section>
+          <h3 className="mb-3 text-lg font-bold">{t.results.ratingTitle}</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-separate border-spacing-0.5 text-sm">
+              <thead>
+                <tr>
+                  <th className="text-left text-xs font-normal text-zinc-500">{t.results.participant}</th>
+                  {keys.map((k) => (
+                    <th key={k} className="h-28 align-bottom">
+                      <div className="mx-auto w-6 [writing-mode:vertical-rl] rotate-180 text-left text-xs font-normal whitespace-nowrap">{cards.get(k)?.name}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {participants.map((p, pi) => (
+                  <tr key={pi}>
+                    <th className="pr-3 text-left font-medium whitespace-nowrap">{p.name}</th>
+                    {keys.map((k) => {
+                      const v = p.ratings?.[k]
+                      return (
+                        <td key={k} className="h-9 min-w-9 rounded bg-amber-400 text-center text-xs font-bold text-zinc-900"
+                          style={{ opacity: v ? 0.15 + 0.85 * (v / 5) : 0.1 }}>
+                          {v ?? '—'}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {result.changes.map((ch) => (
         <section key={ch.id}>

@@ -1,5 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Motivators.Infrastructure.Data;
 using static Motivators.IntegrationTests.Helpers;
 
 namespace Motivators.IntegrationTests;
@@ -89,6 +92,82 @@ public class SurveyFlowTests(ApiFactory api)
         // переоткрытие
         var reopened = await org.PostAsJsonAsync($"/api/surveys/{id}/reopen", new { closesAt = DateTimeOffset.UtcNow.AddDays(3) }).OkJson();
         Assert.Equal("open", reopened["status"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task Ratings_are_required_and_reach_the_report()
+    {
+        var org = await api.LoginAsync($"rate-{Guid.NewGuid():N}@test.ru");
+        var teamId = await CreateTeamAsync(org, "Оценки", 4);
+        var survey = (await org.PostAsJsonAsync($"/api/teams/{teamId}/surveys", new
+        {
+            type = "moving_motivators", declaredParticipants = 4, isAnonymous = true,
+        }).OkJson())["survey"]!;
+        var code = survey["publicCode"]!.GetValue<string>();
+        var id = survey["id"]!.GetValue<string>();
+        var p = api.Anonymous();
+
+        var pub = await p.GetAsync($"/api/public/surveys/{code}").OkJson();
+        Assert.Equal(5, pub["cards"]![0]!["levels"]!.AsArray().Count);
+
+        // без оценок ответ не принимается
+        var noRatings = await p.PostAsJsonAsync($"/api/public/surveys/{code}/responses", new
+        {
+            respondentKey = Guid.NewGuid().ToString(), payload = new { ranking = Keys }, honeypot = "", startedAt = StartedAt(),
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, noRatings.StatusCode);
+
+        // самая важная карточка развита слабо
+        var top = Keys[^1];
+        var ratings = Ratings(4);
+        ratings[top] = 2;
+        var key = Guid.NewGuid().ToString();
+        Assert.Equal(HttpStatusCode.Created, (await p.PostAsJsonAsync($"/api/public/surveys/{code}/responses",
+            MmResponse(Keys, key: key, ratings: ratings))).StatusCode);
+
+        // оценки возвращаются участнику для правки ответа
+        var mine = await p.PostAsJsonAsync($"/api/public/surveys/{code}/responses/mine", new { respondentKey = key }).OkJson();
+        Assert.Equal(2, mine["payload"]!["ratings"]![top]!.GetValue<int>());
+
+        await org.PostAsync($"/api/surveys/{id}/close", null).OkJson();
+        var results = await org.GetAsync($"/api/surveys/{id}/results").OkJson(); // из снимка
+        var card = results["cards"]!.AsArray().Single(c => c!["key"]!.GetValue<string>() == top)!;
+        Assert.Equal(2, card["avgRating"]!.GetValue<double>());
+        Assert.Equal(1, card["ratingDistribution"]![1]!.GetValue<int>());
+        Assert.Equal("low_rated_top_card", results["prompts"]![0]!["kind"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task Survey_created_before_ratings_keeps_working_without_them()
+    {
+        var org = await api.LoginAsync($"v1-{Guid.NewGuid():N}@test.ru");
+        var teamId = await CreateTeamAsync(org, "Старый опрос", 4);
+        var survey = (await org.PostAsJsonAsync($"/api/teams/{teamId}/surveys", new
+        {
+            type = "moving_motivators", declaredParticipants = 4, isAnonymous = true,
+        }).OkJson())["survey"]!;
+        var code = survey["publicCode"]!.GetValue<string>();
+        var id = survey["id"]!.GetValue<string>();
+
+        using (var scope = api.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Surveys.Where(s => s.PublicCode == code)
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.MethodologyVersion, 1));
+        }
+
+        var p = api.Anonymous();
+        var pub = await p.GetAsync($"/api/public/surveys/{code}").OkJson();
+        Assert.Null(pub["cards"]![0]!["levels"]);
+
+        var answer = await p.PostAsJsonAsync($"/api/public/surveys/{code}/responses", new
+        {
+            respondentKey = Guid.NewGuid().ToString(), payload = new { ranking = Keys }, honeypot = "", startedAt = StartedAt(),
+        });
+        Assert.Equal(HttpStatusCode.Created, answer.StatusCode);
+
+        var results = await org.GetAsync($"/api/surveys/{id}/results").OkJson();
+        Assert.Null(results["cards"]![0]!["avgRating"]);
     }
 
     [Fact]

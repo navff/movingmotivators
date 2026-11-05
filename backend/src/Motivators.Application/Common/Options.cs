@@ -61,6 +61,8 @@ public class ResultsOptions
     public double MmNegativeImpact { get; set; } = -0.3;
     /// <summary>Доля ↑ и доля ↓ не меньше — голоса разделились.</summary>
     public double MmSplitShare { get; set; } = 0.3;
+    /// <summary>Средняя оценка развитости (1..5) ниже — мотиватор из топ-3 развит слабо.</summary>
+    public double MmLowRating { get; set; } = 3.0;
     public double HcGreenMin { get; set; } = 2.5;
     public double HcYellowMin { get; set; } = 1.75;
 }

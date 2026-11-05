@@ -35,12 +35,15 @@ public static class Helpers
         return d;
     }
 
+    public static Dictionary<string, int> Ratings(int value = 3) => Keys.ToDictionary(k => k, _ => value);
+
     public static object MmResponse(string[] ranking, Dictionary<string, Dictionary<string, int>>? impact = null,
-        string? key = null, string? name = null, string? comment = null, bool? consent = null) => new
+        string? key = null, string? name = null, string? comment = null, bool? consent = null,
+        Dictionary<string, int>? ratings = null) => new
     {
         respondentKey = key ?? Guid.NewGuid().ToString(),
         participantName = name,
-        payload = new { ranking, impact },
+        payload = new { ranking, ratings = ratings ?? Ratings(), impact },
         comment,
         consent,
         honeypot = "",

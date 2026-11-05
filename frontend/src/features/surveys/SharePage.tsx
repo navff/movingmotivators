@@ -15,6 +15,7 @@ export const participantUrl = (s: Survey) => `${window.location.origin}/s/${s.pu
 export function inviteText(s: Survey) {
   return fmt(t.share.inviteText, {
     type: t.types[s.type],
+    minutes: s.type === 'moving_motivators' ? 7 : 5,
     anon: s.isAnonymous ? t.share.inviteAnon : t.share.inviteNamed,
     url: participantUrl(s),
     date: formatDateTime(s.closesAt),

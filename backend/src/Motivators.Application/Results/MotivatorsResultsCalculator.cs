@@ -1,3 +1,4 @@
+using System.Globalization;
 using Motivators.Application.Common;
 using Motivators.Domain;
 
@@ -31,7 +32,8 @@ public static class MotivatorsResultsCalculator
                 var consensus = std > opts.MmDividedStd ? Consensus.Divided
                     : std <= opts.MmUnanimousStd ? Consensus.Unanimous
                     : Consensus.Mixed;
-                return new MotivatorCardStats(k, Round(avg), Round(std), consensus, dist);
+                var (avgRating, ratingDist) = catalog.HasRatings ? RatingStats(k, responses) : (null, null);
+                return new MotivatorCardStats(k, Round(avg), Round(std), consensus, dist, avgRating, ratingDist);
             })
             // при равенстве — порядок каталога (стабильная сортировка)
             .OrderByDescending(c => c.AvgRank)
@@ -88,12 +90,24 @@ public static class MotivatorsResultsCalculator
             ? null
             : responses
                 .OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)
-                .Select(r => new MotivatorsParticipant(r.Name ?? "", r.Payload.Ranking, r.Payload.Impact, r.Comment))
+                .Select(r => new MotivatorsParticipant(r.Name ?? "", r.Payload.Ranking, r.Payload.Impact, r.Comment, r.Payload.Ratings))
                 .ToList();
 
         var prompts = n == 0 ? [] : BuildPrompts(catalog, cards, top3, changes, opts);
 
         return new MotivatorsResult(n, cards, top3, bottom3, changes, mostPainful, mostPositive, comments, prompts, participants);
+    }
+
+    /// <summary>Средняя оценка развитости и распределение: distribution[i] — сколько поставили i+1 звёзд.</summary>
+    private static (double? Avg, int[]? Distribution) RatingStats(string key, IReadOnlyList<ResponseInput<MotivatorsPayload>> responses)
+    {
+        var values = responses
+            .Select(r => r.Payload.Ratings?.GetValueOrDefault(key) ?? 0)
+            .Where(v => v > 0)
+            .ToList();
+        var distribution = new int[MethodologyCatalog.RatingLevels];
+        foreach (var v in values) distribution[v - 1]++;
+        return (values.Count == 0 ? null : Round(values.Average()), distribution);
     }
 
     private static List<DiscussionPrompt> BuildPrompts(
@@ -119,6 +133,17 @@ public static class MotivatorsResultsCalculator
                     $"Под угрозой один из главных мотиваторов команды: «{Name(key)}». Изменение „{change.Text}“ может ударить по нему.",
                     key, change.Id));
             }
+
+        // Важно для команды, но в команде развито слабо — тоже в первую очередь
+        foreach (var key in top3)
+        {
+            var avgRating = cards.First(c => c.Key == key).AvgRating;
+            if (avgRating is not { } rating || rating >= opts.MmLowRating) continue;
+            var shown = rating.ToString("0.0", CultureInfo.InvariantCulture).Replace('.', ',');
+            high.Add(new DiscussionPrompt(PromptPriority.High, PromptKinds.LowRatedTopCard,
+                $"«{Name(key)}» — один из главных мотиваторов команды, но развит слабо: {shown} из {MethodologyCatalog.RatingLevels}. Что мешает и что можно изменить?",
+                key));
+        }
 
         // 2. Вопросы по топ-3
         foreach (var key in top3)

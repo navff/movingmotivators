@@ -25,12 +25,14 @@ public static class PayloadValidator
         if (ranking.Count != keys.Count || ranking.Distinct().Count() != keys.Count || !ranking.All(keys.Contains))
             throw Fail($"ranking: ровно {keys.Count} уникальных ключей карточек");
 
+        var ratings = ValidateRatings(payload, catalog, keys);
+
         var changes = settings.Changes ?? [];
         var hasImpact = payload.TryGetProperty("impact", out var impactEl) && impactEl.ValueKind != JsonValueKind.Null;
         if (changes.Count == 0)
         {
             if (hasImpact) throw Fail("impact не ожидается: в опросе нет изменений");
-            return new MotivatorsPayload { Ranking = ranking, Impact = null };
+            return new MotivatorsPayload { Ranking = ranking, Ratings = ratings, Impact = null };
         }
 
         if (!hasImpact || impactEl.ValueKind != JsonValueKind.Object) throw Fail("impact обязателен");
@@ -52,7 +54,30 @@ public static class PayloadValidator
         var expected = changes.Select(c => c.Id).ToHashSet();
         if (!impact.Keys.ToHashSet().SetEquals(expected)) throw Fail("impact: набор изменений не совпадает с опросом");
 
-        return new MotivatorsPayload { Ranking = ranking, Impact = impact };
+        return new MotivatorsPayload { Ranking = ranking, Ratings = ratings, Impact = impact };
+    }
+
+    /// <summary>С версии 2 оценка обязательна: ровно все карточки, значения 1..5. В версии 1 её нет.</summary>
+    private static Dictionary<string, int>? ValidateRatings(JsonElement payload, MethodologyVersionContent catalog, HashSet<string> keys)
+    {
+        var present = payload.TryGetProperty("ratings", out var el) && el.ValueKind != JsonValueKind.Null;
+        if (!catalog.HasRatings)
+        {
+            if (present) throw Fail("ratings не ожидается в этой версии методики");
+            return null;
+        }
+
+        if (!present || el.ValueKind != JsonValueKind.Object) throw Fail("ratings обязателен");
+        var ratings = new Dictionary<string, int>();
+        foreach (var prop in el.EnumerateObject())
+        {
+            if (!keys.Contains(prop.Name)) throw Fail($"ratings: неизвестная карточка {prop.Name}");
+            if (prop.Value.ValueKind != JsonValueKind.Number || !prop.Value.TryGetInt32(out var v) || v < 1 || v > MethodologyCatalog.RatingLevels)
+                throw Fail($"ratings: значения от 1 до {MethodologyCatalog.RatingLevels}");
+            if (!ratings.TryAdd(prop.Name, v)) throw Fail("ratings: дубли карточек");
+        }
+        if (ratings.Count != keys.Count) throw Fail($"ratings: нужны оценки всех {keys.Count} карточек");
+        return ratings;
     }
 
     public static HealthCheckPayload ValidateHealthCheck(JsonElement payload, MethodologyVersionContent catalog, SurveySettings settings)

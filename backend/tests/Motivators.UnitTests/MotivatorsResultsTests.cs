@@ -183,6 +183,78 @@ public class MotivatorsResultsTests
         Assert.Equal("Мария", r.Comments.Single().Name);
     }
 
+    private static ResponseInput<MotivatorsPayload> Rated(string[] ranking, int rating, params (string Key, int Value)[] overrides)
+    {
+        var ratings = Keys.ToDictionary(k => k, _ => rating);
+        foreach (var (k, v) in overrides) ratings[k] = v;
+        return new(Guid.CreateVersion7(), null, new MotivatorsPayload { Ranking = ranking.ToList(), Ratings = ratings }, null,
+            new DateOnly(2026, 11, 5));
+    }
+
+    [Fact]
+    public void Ratings_average_and_distribution()
+    {
+        var r = Calc(new SurveySettings { Changes = [] }, true,
+            Rated(Keys, 3, ("freedom", 1)),
+            Rated(Keys, 3, ("freedom", 2)),
+            Rated(Keys, 3, ("freedom", 5)));
+
+        var freedom = r.Cards.Single(c => c.Key == "freedom");
+        Assert.Equal(2.67, freedom.AvgRating);
+        Assert.Equal(new[] { 1, 1, 0, 0, 1 }, freedom.RatingDistribution);
+        Assert.Equal(3, r.Cards.Single(c => c.Key == "curiosity").AvgRating);
+    }
+
+    [Fact]
+    public void Important_but_poorly_developed_card_is_high_priority_prompt()
+    {
+        var top = Keys[9];
+        var r = Calc(new SurveySettings { Changes = [] }, true, Rated(Keys, 4, (top, 2)));
+
+        var prompt = Assert.Single(r.Prompts, p => p.Kind == PromptKinds.LowRatedTopCard);
+        Assert.Equal(PromptPriority.High, prompt.Priority);
+        Assert.Equal(top, prompt.CardKey);
+        Assert.Contains("2,0 из 5", prompt.Text);
+        Assert.Equal(prompt, r.Prompts[0]);
+    }
+
+    [Fact]
+    public void Low_rating_outside_top3_is_not_a_priority_and_threshold_is_exclusive()
+    {
+        var r = Calc(new SurveySettings { Changes = [] }, true, Rated(Keys, 3, (Keys[0], 1)));
+        Assert.DoesNotContain(r.Prompts, p => p.Kind == PromptKinds.LowRatedTopCard);
+    }
+
+    [Fact]
+    public void V1_results_have_no_rating_data()
+    {
+        var r = MotivatorsResultsCalculator.Calculate(MethodologyCatalog.Get(1), new SurveySettings { Changes = [] }, true, [R(Keys)], Opts);
+        Assert.All(r.Cards, c =>
+        {
+            Assert.Null(c.AvgRating);
+            Assert.Null(c.RatingDistribution);
+        });
+    }
+
+    [Fact]
+    public void Named_participants_include_ratings()
+    {
+        var input = Rated(Keys, 4) with { Name = "Мария" };
+        var r = Calc(new SurveySettings { Changes = [] }, false, input);
+        Assert.Equal(4, r.Participants!.Single().Ratings!["freedom"]);
+    }
+
+    [Fact]
+    public void Every_card_describes_all_five_rating_levels()
+    {
+        Assert.All(Catalog.Motivators, m =>
+        {
+            Assert.Equal(MethodologyCatalog.RatingLevels, m.Levels!.Count);
+            Assert.All(m.Levels, level => Assert.False(string.IsNullOrWhiteSpace(level)));
+            Assert.Equal(m.Levels.Count, m.Levels.Distinct().Count());
+        });
+    }
+
     [Fact]
     public void All_cards_have_discussion_prompts()
     {

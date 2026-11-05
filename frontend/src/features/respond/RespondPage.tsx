@@ -10,6 +10,7 @@ import { trendArrow } from '@/lib/colors'
 import { fmt, t } from '@/i18n'
 import { RankingStep } from './RankingStep'
 import { ImpactStep } from './ImpactStep'
+import { RatingStep } from './RatingStep'
 import { HealthCheckCategoryForm, isComplete, type HcDraft } from './HealthCheckStep'
 import { useIsDesktop } from './useMediaQuery'
 
@@ -19,6 +20,8 @@ interface Draft {
   startedAt: number
   name: string
   ranking: string[]
+  /** Карточка → 1..5: насколько мотиватор развит в команде. Привязано к ключу, а не к позиции. */
+  ratings: Record<string, number>
   /** changeId → (карточка → −1|0|1). Привязано к ключу карточки, а не к позиции. */
   impact: ImpactMarks
   answers: Record<string, HcDraft>
@@ -43,6 +46,7 @@ function emptyDraft(s: PublicSurvey): Draft {
     startedAt: Date.now(),
     name: '',
     ranking: shuffle((s.cards ?? []).map((c) => c.key)),
+    ratings: {},
     impact: Object.fromEntries((s.changes ?? []).map((c) => [c.id, Object.fromEntries((s.cards ?? []).map((k) => [k.key, 0]))])),
     answers: {},
     comment: '',
@@ -135,6 +139,7 @@ function Flow({ survey }: { survey: PublicSurvey }) {
             ...d,
             name: mine.participantName ?? d.name,
             ranking: mine.payload.ranking ?? d.ranking,
+            ratings: mine.payload.ratings ?? d.ratings,
             impact: { ...d.impact, ...(mine.payload.impact ?? {}) },
             answers: (mine.payload.answers as Record<string, HcDraft>) ?? d.answers,
             comment: mine.comment ?? d.comment,
@@ -145,9 +150,20 @@ function Flow({ survey }: { survey: PublicSurvey }) {
   }, [code])
 
   // шаги
-  type Step = { kind: 'rank' } | { kind: 'impact'; i: number } | { kind: 'hc-all' } | { kind: 'hc'; i: number } | { kind: 'final' }
+  type Step =
+    | { kind: 'rank' } | { kind: 'rate'; i: number } | { kind: 'impact'; i: number }
+    | { kind: 'hc-all' } | { kind: 'hc'; i: number } | { kind: 'final' }
+  // опросы методики v1 приходят без описаний уровней — шага оценки у них нет
+  const hasRatings = isMm && (survey.cards ?? []).every((c) => c.levels?.length)
+  // от самого важного для участника, как и на шаге влияния
+  const rateOrder = [...draft.ranking].reverse()
   const steps: Step[] = isMm
-    ? [{ kind: 'rank' }, ...changes.map((_, i) => ({ kind: 'impact' as const, i })), { kind: 'final' }]
+    ? [
+      { kind: 'rank' },
+      ...(hasRatings ? rateOrder.map((_, i) => ({ kind: 'rate' as const, i })) : []),
+      ...changes.map((_, i) => ({ kind: 'impact' as const, i })),
+      { kind: 'final' },
+    ]
     : [...(desktop ? [{ kind: 'hc-all' as const }] : categories.map((_, i) => ({ kind: 'hc' as const, i }))), { kind: 'final' }]
   const stepIndex = Math.min(draft.step, steps.length - 1)
   const step = steps[stepIndex]
@@ -158,19 +174,26 @@ function Flow({ survey }: { survey: PublicSurvey }) {
   }
 
   const canNext =
-    step.kind === 'hc' ? isComplete(draft.answers[categories[step.i].key])
+    step.kind === 'rate' ? draft.ratings[rateOrder[step.i]] != null
+    : step.kind === 'hc' ? isComplete(draft.answers[categories[step.i].key])
     : step.kind === 'hc-all' ? categories.every((c) => isComplete(draft.answers[c.key]))
     : true
   const needsName = !survey.isAnonymous
   const canSubmit = (!needsName || (draft.name.trim().length > 0 && consent)) &&
-    (isMm || categories.every((c) => isComplete(draft.answers[c.key])))
+    (isMm
+      ? !hasRatings || rateOrder.every((k) => draft.ratings[k] != null)
+      : categories.every((c) => isComplete(draft.answers[c.key])))
 
   const submit = async () => {
     setSubmitting(true)
     setSubmitError(null)
     try {
       const payload = isMm
-        ? { ranking: draft.ranking, impact: changes.length ? Object.fromEntries(changes.map((c) => [c.id, draft.impact[c.id]])) : null }
+        ? {
+          ranking: draft.ranking,
+          ratings: hasRatings ? draft.ratings : undefined,
+          impact: changes.length ? Object.fromEntries(changes.map((c) => [c.id, draft.impact[c.id]])) : null,
+        }
         : {
           answers: Object.fromEntries(categories.map((c) => {
             const a = draft.answers[c.key]
@@ -214,7 +237,7 @@ function Flow({ survey }: { survey: PublicSurvey }) {
             <div className="mb-1 text-lg font-bold">{survey.isAnonymous ? t.respond.anonBadge : t.respond.namedBadge}</div>
             <p className="text-sm">{survey.isAnonymous ? t.respond.anonText : t.respond.namedText}</p>
           </div>
-          <p className="text-sm text-zinc-500">⏱ {t.respond.takes}</p>
+          <p className="text-sm text-zinc-500">⏱ {fmt(t.respond.takes, { minutes: hasRatings ? 7 : 5 })}</p>
           {already && <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-900 dark:bg-blue-950 dark:text-blue-200">{t.respond.alreadyDone}</p>}
           {needsName && (
             <div>
@@ -291,6 +314,16 @@ function Flow({ survey }: { survey: PublicSurvey }) {
           <h1 className="mb-2 text-2xl font-bold">{t.respond.rankTitle}</h1>
           <RankingStep cards={cards} ranking={draft.ranking} onChange={(ranking) => setDraft({ ranking })} />
         </>
+      )}
+
+      {step.kind === 'rate' && (
+        <RatingStep
+          card={cards.get(rateOrder[step.i])!}
+          index={step.i}
+          total={rateOrder.length}
+          value={draft.ratings[rateOrder[step.i]]}
+          onChange={(v) => setDraft({ ratings: { ...draft.ratings, [rateOrder[step.i]]: v } })}
+        />
       )}
 
       {step.kind === 'impact' && (

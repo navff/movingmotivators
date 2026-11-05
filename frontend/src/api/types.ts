@@ -19,6 +19,8 @@ export interface MotivatorCardInfo {
   statement: string
   accentColor: string
   discussionPrompts?: string[]
+  /** Описания оценок 1–5 звёзд; нет в опросах методики v1. */
+  levels?: string[] | null
 }
 
 export interface HealthCheckCategoryInfo {
@@ -164,6 +166,9 @@ export interface MotivatorCardStats {
   stdRank: number
   consensus: 'unanimous' | 'mixed' | 'divided'
   distribution: number[]
+  /** Насколько развито в команде, 1..5; нет в опросах методики v1. */
+  avgRating?: number
+  ratingDistribution?: number[]
 }
 
 export interface ChangeCardImpact {
@@ -189,6 +194,7 @@ export interface MotivatorsParticipant {
   ranking: string[]
   impact?: ImpactMarks | null
   comment?: string | null
+  ratings?: Record<string, number> | null
 }
 
 export interface MotivatorsResult {
@@ -279,7 +285,7 @@ export interface PublicSurvey {
 
 export interface MyResponse {
   participantName?: string
-  payload: { ranking?: string[]; impact?: ImpactMarks | null; answers?: Record<string, HealthCheckAnswer> }
+  payload: { ranking?: string[]; ratings?: Record<string, number> | null; impact?: ImpactMarks | null; answers?: Record<string, HealthCheckAnswer> }
   comment?: string
   updatedCount: number
 }

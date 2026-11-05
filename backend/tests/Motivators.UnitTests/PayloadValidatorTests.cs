@@ -7,7 +7,8 @@ namespace Motivators.UnitTests;
 
 public class PayloadValidatorTests
 {
-    private static readonly MethodologyVersionContent Catalog = MethodologyCatalog.Current;
+    // v1 — без шага оценки: старые опросы должны продолжать приниматься
+    private static readonly MethodologyVersionContent Catalog = MethodologyCatalog.Get(1);
     private static readonly string[] Keys = Catalog.Motivators.Select(m => m.Key).ToArray();
     private static readonly SurveySettings NoChanges = new() { Changes = [] };
     private static readonly SurveySettings TwoChanges = new()
@@ -74,6 +75,47 @@ public class PayloadValidatorTests
         var missing = Marks(); missing.Remove("freedom");
         Assert.Throws<AppException>(() =>
             PayloadValidator.ValidateMotivators(J(new { ranking = Keys, impact = new { c1 = missing, c2 = Marks() } }), Catalog, TwoChanges));
+    }
+
+    private static Dictionary<string, int> Ratings(int v = 3) => Keys.ToDictionary(k => k, _ => v);
+
+    [Fact]
+    public void V2_requires_rating_for_every_card()
+    {
+        var current = MethodologyCatalog.Current;
+        Assert.True(current.HasRatings);
+
+        var ok = PayloadValidator.ValidateMotivators(J(new { ranking = Keys, ratings = Ratings(5) }), current, NoChanges);
+        Assert.Equal(10, ok.Ratings!.Count);
+        Assert.All(ok.Ratings.Values, v => Assert.Equal(5, v));
+
+        Assert.Throws<AppException>(() => PayloadValidator.ValidateMotivators(J(new { ranking = Keys }), current, NoChanges));
+
+        var missing = Ratings(); missing.Remove("freedom");
+        Assert.Throws<AppException>(() => PayloadValidator.ValidateMotivators(J(new { ranking = Keys, ratings = missing }), current, NoChanges));
+
+        var unknown = Ratings(); unknown.Remove("freedom"); unknown["money"] = 3;
+        Assert.Throws<AppException>(() => PayloadValidator.ValidateMotivators(J(new { ranking = Keys, ratings = unknown }), current, NoChanges));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(6)]
+    [InlineData(-1)]
+    public void V2_rating_range_is_1_to_5(int value)
+    {
+        var bad = Ratings(); bad["freedom"] = value;
+        Assert.Throws<AppException>(() =>
+            PayloadValidator.ValidateMotivators(J(new { ranking = Keys, ratings = bad }), MethodologyCatalog.Current, NoChanges));
+    }
+
+    [Fact]
+    public void V1_keeps_working_without_ratings_and_rejects_them()
+    {
+        var old = MethodologyCatalog.Get(1);
+        Assert.False(old.HasRatings);
+        Assert.Null(PayloadValidator.ValidateMotivators(J(new { ranking = Keys }), old, NoChanges).Ratings);
+        Assert.Throws<AppException>(() => PayloadValidator.ValidateMotivators(J(new { ranking = Keys, ratings = Ratings() }), old, NoChanges));
     }
 
     [Fact]

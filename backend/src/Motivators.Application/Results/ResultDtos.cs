@@ -14,6 +14,7 @@ public static class PromptPriority
 public static class PromptKinds
 {
     public const string TopCardThreatened = "top_card_threatened";
+    public const string LowRatedTopCard = "low_rated_top_card";
     public const string TopCard = "top_card";
     public const string DividedOpinions = "divided_opinions";
     public const string NegativeImpact = "negative_impact";
@@ -46,7 +47,11 @@ public record MotivatorCardStats(
     double StdRank,
     string Consensus,
     /// <summary>Distribution[i] — сколько человек поставили карточку на позицию i+1 (10 — самая важная).</summary>
-    int[] Distribution);
+    int[] Distribution,
+    /// <summary>Насколько мотиватор развит в команде, средняя оценка 1..5. null — нет оценок (методика v1 или нет ответов).</summary>
+    double? AvgRating = null,
+    /// <summary>RatingDistribution[i] — сколько человек поставили i+1 звёзд. null — методика v1.</summary>
+    int[]? RatingDistribution = null);
 
 public record ChangeCardImpact(string Key, int Up, int Neutral, int Down, double Index);
 
@@ -63,7 +68,8 @@ public record MotivatorsParticipant(
     string Name,
     IReadOnlyList<string> Ranking,
     Dictionary<string, Dictionary<string, int>>? Impact,
-    string? Comment);
+    string? Comment,
+    Dictionary<string, int>? Ratings = null);
 
 public record MotivatorsResult(
     int ResponseCount,

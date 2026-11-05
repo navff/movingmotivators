@@ -7,7 +7,7 @@ using Motivators.Domain;
 
 namespace Motivators.Application.Responses;
 
-public record PublicMotivatorCard(string Key, string Name, string? EnglishName, string Statement, string AccentColor);
+public record PublicMotivatorCard(string Key, string Name, string? EnglishName, string Statement, string AccentColor, IReadOnlyList<string>? Levels);
 
 public record PublicCategory(string Key, string Name, string Awesome, string Awful);
 
@@ -78,7 +78,7 @@ public class PublicSurveyService(
             survey.WelcomeMessage,
             survey.IsAnonymous,
             survey.ClosesAt,
-            isMm ? catalog.Motivators.Select(m => new PublicMotivatorCard(m.Key, m.Name, showEnglish ? m.EnglishName : null, m.Statement, m.AccentColor)).ToList() : null,
+            isMm ? catalog.Motivators.Select(m => new PublicMotivatorCard(m.Key, m.Name, showEnglish ? m.EnglishName : null, m.Statement, m.AccentColor, m.Levels)).ToList() : null,
             isMm ? survey.Settings.Changes ?? [] : null,
             isMm ? null : catalog.HealthCheckCategories.Where(c => enabled.Contains(c.Key))
                 .Select(c => new PublicCategory(c.Key, c.Name, c.Awesome, c.Awful)).ToList(),
