@@ -69,7 +69,7 @@ export function MotivatorsMap({
           {/* подписи по оси X */}
           <div className="grid grid-cols-10 pt-1.5">
             {ranking.map((key) => (
-              <div key={key} className="mx-auto h-24 rotate-180 text-xs whitespace-nowrap [writing-mode:vertical-rl]">{cards.get(key)?.name}</div>
+              <div key={key} className="ml-auto mr-auto h-24 rotate-180 text-end text-xs whitespace-nowrap [writing-mode:vertical-rl]">{cards.get(key)?.name}</div>
             ))}
           </div>
           <div className="mt-1 flex justify-between text-xs font-medium text-zinc-500">

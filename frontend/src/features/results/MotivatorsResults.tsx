@@ -209,7 +209,7 @@ function ImpactTab({ result, cards }: { result: MotivatorsResult; cards: Cards }
                   <th />
                   {result.cards.map((c) => (
                     <th key={c.key} className="h-28 align-bottom">
-                      <div className="mx-auto w-6 [writing-mode:vertical-rl] rotate-180 text-left text-xs font-normal whitespace-nowrap">
+                      <div className="ml-auto mr-auto w-6 [writing-mode:vertical-rl] rotate-180 text-left text-xs font-normal whitespace-nowrap">
                         {cards.get(c.key)?.name}
                       </div>
                     </th>
@@ -289,7 +289,7 @@ function ParticipantsTab({ result, cards }: { result: MotivatorsResult; cards: C
               <th className="text-left text-xs font-normal text-zinc-500">{t.results.participant}</th>
               {keys.map((k) => (
                 <th key={k} className="h-28 align-bottom">
-                  <div className="mx-auto w-6 [writing-mode:vertical-rl] rotate-180 text-left text-xs font-normal whitespace-nowrap">{cards.get(k)?.name}</div>
+                  <div className="ml-auto mr-auto w-6 [writing-mode:vertical-rl] rotate-180 text-left text-xs font-normal whitespace-nowrap">{cards.get(k)?.name}</div>
                 </th>
               ))}
             </tr>
@@ -325,7 +325,7 @@ function ParticipantsTab({ result, cards }: { result: MotivatorsResult; cards: C
                   <th className="text-left text-xs font-normal text-zinc-500">{t.results.participant}</th>
                   {keys.map((k) => (
                     <th key={k} className="h-28 align-bottom">
-                      <div className="mx-auto w-6 [writing-mode:vertical-rl] rotate-180 text-left text-xs font-normal whitespace-nowrap">{cards.get(k)?.name}</div>
+                      <div className="ml-auto mr-auto w-6 [writing-mode:vertical-rl] rotate-180 text-left text-xs font-normal whitespace-nowrap">{cards.get(k)?.name}</div>
                     </th>
                   ))}
                 </tr>

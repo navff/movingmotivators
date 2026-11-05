@@ -65,7 +65,7 @@ export default function MotivatorsCompare({ surveys }: { surveys: SurveyListItem
                     <th />
                     {data.cards.map((c) => (
                       <th key={c.key} className="h-24 align-bottom">
-                        <div className="mx-auto w-6 [writing-mode:vertical-rl] rotate-180 text-left text-xs font-normal whitespace-nowrap">{cards.get(c.key)?.name}</div>
+                        <div className="ml-auto mr-auto w-6 [writing-mode:vertical-rl] rotate-180 text-left text-xs font-normal whitespace-nowrap">{cards.get(c.key)?.name}</div>
                       </th>
                     ))}
                   </tr>
