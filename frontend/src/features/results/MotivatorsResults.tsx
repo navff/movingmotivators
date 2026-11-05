@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Catalog, MotivatorsResult, Survey } from '@/api/types'
 import { MotivatorCard } from '@/components/MotivatorCard'
+import { MotivatorsMap } from '@/components/MotivatorsMap'
 import { Tabs } from '@/components/ui'
 import { impactColor } from '@/lib/colors'
 import { t } from '@/i18n'
@@ -94,6 +95,15 @@ function RatingsSection({ result, cards }: { result: MotivatorsResult; cards: Ca
     <section>
       <h2 className="mb-1 text-xl font-bold">{t.results.ratingTitle}</h2>
       <p className="mb-4 text-sm text-zinc-500">{t.results.ratingHint}</p>
+      <div className="mb-6 max-w-3xl">
+        <MotivatorsMap
+          title={t.results.ratingMapTitle}
+          hint={t.results.ratingMapHint}
+          cards={cards}
+          ranking={result.cards.map((c) => c.key).reverse()}
+          ratings={Object.fromEntries(result.cards.map((c) => [c.key, c.avgRating ?? 0]))}
+        />
+      </div>
       <div className="space-y-2">
         {result.cards.map((c) => {
           const card = cards.get(c.key)!

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api, ApiError, errorMessage } from '@/api/client'
 import type { HealthCheckAnswer, ImpactMarks, MotivatorCardInfo, MyResponse, PublicSurvey } from '@/api/types'
 import { MotivatorCard } from '@/components/MotivatorCard'
+import { MotivatorsMap } from '@/components/MotivatorsMap'
 import { ErrorBox, Spinner } from '@/components/ui'
 import { shuffle, storage, uuid } from '@/lib/storage'
 import { trendArrow } from '@/lib/colors'
@@ -11,7 +12,6 @@ import { fmt, t } from '@/i18n'
 import { RankingStep } from './RankingStep'
 import { ImpactStep } from './ImpactStep'
 import { RatingStep } from './RatingStep'
-import { MotivatorsMap } from './MotivatorsMap'
 import { HealthCheckCategoryForm, isComplete, type HcDraft } from './HealthCheckStep'
 import { useIsDesktop } from './useMediaQuery'
 
@@ -268,7 +268,7 @@ function Flow({ survey }: { survey: PublicSurvey }) {
           <p className="text-zinc-600 dark:text-zinc-300">{isMm ? t.respond.thanksText : t.respond.thanksHcText}</p>
         </div>
         {isMm && hasRatings ? (
-          <MotivatorsMap cards={cards} ranking={draft.ranking} ratings={draft.ratings} />
+          <MotivatorsMap title={t.respond.mapTitle} hint={t.respond.mapHint} cards={cards} ranking={draft.ranking} ratings={draft.ratings} />
         ) : isMm ? (
           <>
             <h2 className="font-bold">{t.respond.yourRanking}</h2>
