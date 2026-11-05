@@ -11,6 +11,7 @@ import { fmt, t } from '@/i18n'
 import { RankingStep } from './RankingStep'
 import { ImpactStep } from './ImpactStep'
 import { RatingStep } from './RatingStep'
+import { MotivatorsMap } from './MotivatorsMap'
 import { HealthCheckCategoryForm, isComplete, type HcDraft } from './HealthCheckStep'
 import { useIsDesktop } from './useMediaQuery'
 
@@ -266,7 +267,9 @@ function Flow({ survey }: { survey: PublicSurvey }) {
           <h1 className="mb-2 text-2xl font-bold">{t.respond.thanksTitle}</h1>
           <p className="text-zinc-600 dark:text-zinc-300">{isMm ? t.respond.thanksText : t.respond.thanksHcText}</p>
         </div>
-        {isMm ? (
+        {isMm && hasRatings ? (
+          <MotivatorsMap cards={cards} ranking={draft.ranking} ratings={draft.ratings} />
+        ) : isMm ? (
           <>
             <h2 className="font-bold">{t.respond.yourRanking}</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
