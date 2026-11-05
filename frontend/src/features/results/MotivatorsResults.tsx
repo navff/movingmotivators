@@ -15,7 +15,7 @@ export function MotivatorsResults({ survey, result, catalog }: { survey: Survey;
     { id: 'team', label: t.results.tabTeam },
     ...(hasImpact ? [{ id: 'impact' as const, label: t.results.tabImpact }] : []),
     ...(!survey.isAnonymous ? [{ id: 'participants' as const, label: t.results.tabParticipants }] : []),
-    { id: 'comments', label: `${t.results.tabComments} (${result.comments.length})` },
+    { id: 'comments', label: `${t.results.tabComments} (${result.comments.length + (result.ratingComments?.length ?? 0)})` },
     { id: 'discussion', label: t.results.tabDiscussion },
   ]
   const [tab, setTab] = useState<Tab>('team')
@@ -27,13 +27,31 @@ export function MotivatorsResults({ survey, result, catalog }: { survey: Survey;
       {tab === 'team' && <TeamTab result={result} cards={cards} />}
       {tab === 'impact' && <ImpactTab result={result} cards={cards} />}
       {tab === 'participants' && <ParticipantsTab result={result} cards={cards} />}
-      {tab === 'comments' && <Comments items={result.comments} anonymous={survey.isAnonymous} />}
+      {tab === 'comments' && <CommentsTab result={result} cards={cards} anonymous={survey.isAnonymous} />}
       {tab === 'discussion' && <Prompts prompts={result.prompts} />}
     </>
   )
 }
 
 type Cards = ReturnType<typeof cardMap>
+
+function CommentsTab({ result, cards, anonymous }: { result: MotivatorsResult; cards: Cards; anonymous: boolean }) {
+  const byCard = result.cards
+    .map((c) => ({ key: c.key, items: (result.ratingComments ?? []).filter((x) => x.cardKey === c.key) }))
+    .filter((g) => g.items.length > 0)
+  return (
+    <div className="space-y-8">
+      {(result.comments.length > 0 || byCard.length === 0) && <Comments items={result.comments} anonymous={anonymous} />}
+      {byCard.length > 0 && <h2 className="text-xl font-bold">{t.results.ratingCommentsTitle}</h2>}
+      {byCard.map((g) => (
+        <section key={g.key}>
+          <h3 className="mb-3 font-bold"><Chip card={cards.get(g.key)} /></h3>
+          <Comments items={g.items} anonymous={anonymous} />
+        </section>
+      ))}
+    </div>
+  )
+}
 
 function TeamTab({ result, cards }: { result: MotivatorsResult; cards: Cards }) {
   const consensusLabel = { unanimous: t.results.unanimous, mixed: t.results.mixed, divided: t.results.divided }

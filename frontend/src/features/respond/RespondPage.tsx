@@ -23,6 +23,8 @@ interface Draft {
   ranking: string[]
   /** Карточка → 1..5: насколько мотиватор развит в команде. Привязано к ключу, а не к позиции. */
   ratings: Record<string, number>
+  /** Карточка → комментарий к оценке (необязательно). */
+  ratingComments: Record<string, string>
   /** changeId → (карточка → −1|0|1). Привязано к ключу карточки, а не к позиции. */
   impact: ImpactMarks
   answers: Record<string, HcDraft>
@@ -48,6 +50,7 @@ function emptyDraft(s: PublicSurvey): Draft {
     name: '',
     ranking: shuffle((s.cards ?? []).map((c) => c.key)),
     ratings: {},
+    ratingComments: {},
     impact: Object.fromEntries((s.changes ?? []).map((c) => [c.id, Object.fromEntries((s.cards ?? []).map((k) => [k.key, 0]))])),
     answers: {},
     comment: '',
@@ -141,6 +144,7 @@ function Flow({ survey }: { survey: PublicSurvey }) {
             name: mine.participantName ?? d.name,
             ranking: mine.payload.ranking ?? d.ranking,
             ratings: mine.payload.ratings ?? d.ratings,
+            ratingComments: mine.payload.ratingComments ?? d.ratingComments,
             impact: { ...d.impact, ...(mine.payload.impact ?? {}) },
             answers: (mine.payload.answers as Record<string, HcDraft>) ?? d.answers,
             comment: mine.comment ?? d.comment,
@@ -193,6 +197,7 @@ function Flow({ survey }: { survey: PublicSurvey }) {
         ? {
           ranking: draft.ranking,
           ratings: hasRatings ? draft.ratings : undefined,
+          ratingComments: hasRatings ? draft.ratingComments : undefined,
           impact: changes.length ? Object.fromEntries(changes.map((c) => [c.id, draft.impact[c.id]])) : null,
         }
         : {
@@ -326,6 +331,8 @@ function Flow({ survey }: { survey: PublicSurvey }) {
           total={rateOrder.length}
           value={draft.ratings[rateOrder[step.i]]}
           onChange={(v) => setDraft({ ratings: { ...draft.ratings, [rateOrder[step.i]]: v } })}
+          comment={draft.ratingComments[rateOrder[step.i]] ?? ''}
+          onCommentChange={(v) => setDraft({ ratingComments: { ...draft.ratingComments, [rateOrder[step.i]]: v } })}
         />
       )}
 

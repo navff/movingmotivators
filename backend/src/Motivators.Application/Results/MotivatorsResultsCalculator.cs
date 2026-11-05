@@ -86,6 +86,16 @@ public static class MotivatorsResultsCalculator
                     : new CommentDto(r.Comment!, r.Name, r.SubmittedOn))),
             isAnonymous);
 
+        var ratingComments = cards.SelectMany(c => CommentOrdering.Apply(
+            responses
+                .Select(r => (r.Id, r.Name, r.SubmittedOn, Text: r.Payload.RatingComments?.GetValueOrDefault(c.Key)))
+                .Where(x => !string.IsNullOrWhiteSpace(x.Text))
+                .Select(x => (x.Id, Dto: isAnonymous
+                    ? new CommentDto(x.Text!, CardKey: c.Key)
+                    : new CommentDto(x.Text!, x.Name, x.SubmittedOn, CardKey: c.Key))),
+            isAnonymous,
+            salt: c.Key)).ToList();
+
         var participants = isAnonymous
             ? null
             : responses
@@ -95,7 +105,7 @@ public static class MotivatorsResultsCalculator
 
         var prompts = n == 0 ? [] : BuildPrompts(catalog, cards, top3, changes, opts);
 
-        return new MotivatorsResult(n, cards, top3, bottom3, changes, mostPainful, mostPositive, comments, prompts, participants);
+        return new MotivatorsResult(n, cards, top3, bottom3, changes, mostPainful, mostPositive, comments, prompts, participants, ratingComments);
     }
 
     /// <summary>Средняя оценка развитости и распределение: distribution[i] — сколько поставили i+1 звёзд.</summary>
@@ -190,10 +200,11 @@ internal static class CommentOrdering
 {
     /// <summary>
     /// Анонимный режим — псевдослучайный, но стабильный порядок (по хешу id), без времени.
-    /// Неанонимный — по дате отправки.
+    /// Неанонимный — по дате отправки. salt делает порядок разным для разных групп комментариев:
+    /// иначе ответы одного человека стояли бы на одинаковых позициях и их можно было бы связать.
     /// </summary>
-    public static List<CommentDto> Apply(IEnumerable<(Guid Id, CommentDto Dto)> items, bool anonymous) =>
+    public static List<CommentDto> Apply(IEnumerable<(Guid Id, CommentDto Dto)> items, bool anonymous, string salt = "") =>
         anonymous
-            ? items.OrderBy(x => Convert.ToHexString(Crypto.Sha256(x.Id.ToString()))).Select(x => x.Dto).ToList()
+            ? items.OrderBy(x => Convert.ToHexString(Crypto.Sha256(x.Id + salt))).Select(x => x.Dto).ToList()
             : items.OrderBy(x => x.Id).Select(x => x.Dto).ToList();
 }

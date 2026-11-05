@@ -119,6 +119,30 @@ public class PayloadValidatorTests
     }
 
     [Fact]
+    public void Rating_comments_are_optional_trimmed_and_empty_ones_dropped()
+    {
+        var current = MethodologyCatalog.Current;
+        var p = PayloadValidator.ValidateMotivators(
+            J(new { ranking = Keys, ratings = Ratings(), ratingComments = new { freedom = "  много согласований  ", goal = "   " } }),
+            current, NoChanges);
+        Assert.Equal("много согласований", Assert.Single(p.RatingComments!).Value);
+
+        Assert.Null(PayloadValidator.ValidateMotivators(J(new { ranking = Keys, ratings = Ratings() }), current, NoChanges).RatingComments);
+    }
+
+    [Fact]
+    public void Rating_comments_are_validated()
+    {
+        var current = MethodologyCatalog.Current;
+        Assert.Throws<AppException>(() => PayloadValidator.ValidateMotivators(
+            J(new { ranking = Keys, ratings = Ratings(), ratingComments = new { money = "x" } }), current, NoChanges));
+        Assert.Throws<AppException>(() => PayloadValidator.ValidateMotivators(
+            J(new { ranking = Keys, ratings = Ratings(), ratingComments = new { freedom = new string('x', 501) } }), current, NoChanges));
+        Assert.Throws<AppException>(() => PayloadValidator.ValidateMotivators(
+            J(new { ranking = Keys, ratingComments = new { freedom = "x" } }), MethodologyCatalog.Get(1), NoChanges));
+    }
+
+    [Fact]
     public void Health_check_requires_exactly_enabled_categories()
     {
         var settings = new SurveySettings { Categories = ["delivery", "fun", "speed"] };

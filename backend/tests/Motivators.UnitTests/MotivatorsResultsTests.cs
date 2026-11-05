@@ -244,6 +244,47 @@ public class MotivatorsResultsTests
         Assert.Equal(4, r.Participants!.Single().Ratings!["freedom"]);
     }
 
+    private static ResponseInput<MotivatorsPayload> Commented(string? name, params (string Key, string Text)[] comments)
+    {
+        var r = Rated(Keys, 3);
+        r.Payload.RatingComments = comments.ToDictionary(c => c.Key, c => c.Text);
+        return r with { Name = name };
+    }
+
+    [Fact]
+    public void Rating_comments_are_grouped_by_card_in_importance_order()
+    {
+        var top = Keys[9];
+        var r = Calc(new SurveySettings { Changes = [] }, false, Commented("Анна", (Keys[0], "низ"), (top, "верх")));
+        Assert.Equal(new[] { top, Keys[0] }, r.RatingComments!.Select(c => c.CardKey));
+        Assert.Equal("Анна", r.RatingComments![0].Name);
+    }
+
+    [Fact]
+    public void Anonymous_rating_comments_have_no_identity()
+    {
+        var r = Calc(new SurveySettings { Changes = [] }, true, Commented("Анна", (Keys[0], "текст")));
+        var c = Assert.Single(r.RatingComments!);
+        Assert.Null(c.Name);
+        Assert.Null(c.SubmittedOn);
+    }
+
+    [Fact]
+    public void Anonymous_order_differs_between_cards_so_answers_cannot_be_linked()
+    {
+        var a = Keys[0];
+        var b = Keys[1];
+        var inputs = Enumerable.Range(0, 12)
+            .Select(i => Commented(null, (a, $"p{i}"), (b, $"p{i}")))
+            .ToArray();
+
+        var r = Calc(new SurveySettings { Changes = [] }, true, inputs);
+
+        var orderA = r.RatingComments!.Where(c => c.CardKey == a).Select(c => c.Text);
+        var orderB = r.RatingComments!.Where(c => c.CardKey == b).Select(c => c.Text);
+        Assert.NotEqual(orderA, orderB);
+    }
+
     [Fact]
     public void Every_card_describes_all_five_rating_levels()
     {

@@ -18,13 +18,15 @@ export function Stars({ value, className = '' }: { value: number; className?: st
  * У каждой оценки своё описание — чтобы все понимали шкалу одинаково.
  */
 export function RatingStep({
-  card, index, total, value, onChange,
+  card, index, total, value, onChange, comment, onCommentChange,
 }: {
   card: MotivatorCardInfo
   index: number
   total: number
   value?: number
   onChange: (v: number) => void
+  comment: string
+  onCommentChange: (v: string) => void
 }) {
   return (
     <div>
@@ -54,6 +56,15 @@ export function RatingStep({
           )
         })}
       </div>
+      <textarea
+        className="input mt-3 text-sm"
+        rows={2}
+        maxLength={500}
+        placeholder={t.respond.rateCommentPlaceholder}
+        aria-label={`${card.name}: ${t.respond.rateCommentPlaceholder}`}
+        value={comment}
+        onChange={(e) => onCommentChange(e.target.value)}
+      />
     </div>
   )
 }

@@ -30,7 +30,7 @@ public record DiscussionPrompt(
     string? ChangeId = null,
     IReadOnlyList<string>? Questions = null);
 
-public record CommentDto(string Text, string? Name = null, DateOnly? SubmittedOn = null, string? CategoryKey = null);
+public record CommentDto(string Text, string? Name = null, DateOnly? SubmittedOn = null, string? CategoryKey = null, string? CardKey = null);
 
 // ---------- Движущие мотиваторы ----------
 
@@ -81,7 +81,9 @@ public record MotivatorsResult(
     string? MostPositiveChangeId,
     IReadOnlyList<CommentDto> Comments,
     IReadOnlyList<DiscussionPrompt> Prompts,
-    IReadOnlyList<MotivatorsParticipant>? Participants)
+    IReadOnlyList<MotivatorsParticipant>? Participants,
+    /// <summary>Комментарии к оценкам развитости: по карточкам, в порядке важности (CardKey заполнен).</summary>
+    IReadOnlyList<CommentDto>? RatingComments = null)
 {
     public string Type => SurveyTypes.MovingMotivators;
 }

@@ -158,6 +158,7 @@ export interface CommentItem {
   name?: string
   submittedOn?: string
   categoryKey?: string
+  cardKey?: string
 }
 
 export interface MotivatorCardStats {
@@ -209,6 +210,7 @@ export interface MotivatorsResult {
   comments: CommentItem[]
   prompts: DiscussionPrompt[]
   participants?: MotivatorsParticipant[]
+  ratingComments?: CommentItem[]
 }
 
 export type TrafficColor = 'green' | 'yellow' | 'red'
@@ -285,7 +287,7 @@ export interface PublicSurvey {
 
 export interface MyResponse {
   participantName?: string
-  payload: { ranking?: string[]; ratings?: Record<string, number> | null; impact?: ImpactMarks | null; answers?: Record<string, HealthCheckAnswer> }
+  payload: { ranking?: string[]; ratings?: Record<string, number> | null; ratingComments?: Record<string, string> | null; impact?: ImpactMarks | null; answers?: Record<string, HealthCheckAnswer> }
   comment?: string
   updatedCount: number
 }

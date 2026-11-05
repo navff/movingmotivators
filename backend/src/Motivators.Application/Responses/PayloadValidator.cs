@@ -8,6 +8,7 @@ namespace Motivators.Application.Responses;
 public static class PayloadValidator
 {
     public const int HcCommentMaxLength = 500;
+    public const int RatingCommentMaxLength = 500;
 
     public static MotivatorsPayload ValidateMotivators(JsonElement payload, MethodologyVersionContent catalog, SurveySettings settings)
     {
@@ -26,13 +27,14 @@ public static class PayloadValidator
             throw Fail($"ranking: ровно {keys.Count} уникальных ключей карточек");
 
         var ratings = ValidateRatings(payload, catalog, keys);
+        var ratingComments = ValidateRatingComments(payload, catalog, keys);
 
         var changes = settings.Changes ?? [];
         var hasImpact = payload.TryGetProperty("impact", out var impactEl) && impactEl.ValueKind != JsonValueKind.Null;
         if (changes.Count == 0)
         {
             if (hasImpact) throw Fail("impact не ожидается: в опросе нет изменений");
-            return new MotivatorsPayload { Ranking = ranking, Ratings = ratings, Impact = null };
+            return new MotivatorsPayload { Ranking = ranking, Ratings = ratings, RatingComments = ratingComments, Impact = null };
         }
 
         if (!hasImpact || impactEl.ValueKind != JsonValueKind.Object) throw Fail("impact обязателен");
@@ -54,7 +56,7 @@ public static class PayloadValidator
         var expected = changes.Select(c => c.Id).ToHashSet();
         if (!impact.Keys.ToHashSet().SetEquals(expected)) throw Fail("impact: набор изменений не совпадает с опросом");
 
-        return new MotivatorsPayload { Ranking = ranking, Ratings = ratings, Impact = impact };
+        return new MotivatorsPayload { Ranking = ranking, Ratings = ratings, RatingComments = ratingComments, Impact = impact };
     }
 
     /// <summary>С версии 2 оценка обязательна: ровно все карточки, значения 1..5. В версии 1 её нет.</summary>
@@ -78,6 +80,25 @@ public static class PayloadValidator
         }
         if (ratings.Count != keys.Count) throw Fail($"ratings: нужны оценки всех {keys.Count} карточек");
         return ratings;
+    }
+
+    /// <summary>Необязательно: только к карточкам каталога, пустые отбрасываются. В версии 1 оценок нет — и комментариев к ним тоже.</summary>
+    private static Dictionary<string, string>? ValidateRatingComments(JsonElement payload, MethodologyVersionContent catalog, HashSet<string> keys)
+    {
+        if (!payload.TryGetProperty("ratingComments", out var el) || el.ValueKind == JsonValueKind.Null) return null;
+        if (!catalog.HasRatings) throw Fail("ratingComments не ожидается в этой версии методики");
+        if (el.ValueKind != JsonValueKind.Object) throw Fail("ratingComments: ожидается объект");
+
+        var comments = new Dictionary<string, string>();
+        foreach (var prop in el.EnumerateObject())
+        {
+            if (!keys.Contains(prop.Name)) throw Fail($"ratingComments: неизвестная карточка {prop.Name}");
+            if (prop.Value.ValueKind != JsonValueKind.String) throw Fail("ratingComments: ожидается строка");
+            var text = prop.Value.GetString()!.Trim();
+            if (text.Length > RatingCommentMaxLength) throw Fail($"ratingComments: не более {RatingCommentMaxLength} символов");
+            if (text.Length > 0) comments[prop.Name] = text;
+        }
+        return comments.Count == 0 ? null : comments;
     }
 
     public static HealthCheckPayload ValidateHealthCheck(JsonElement payload, MethodologyVersionContent catalog, SurveySettings settings)
