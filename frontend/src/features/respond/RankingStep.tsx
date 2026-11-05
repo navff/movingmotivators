@@ -4,6 +4,16 @@ import { move, SortableList } from '@/components/SortableList'
 import { t } from '@/i18n'
 import { useIsDesktop } from './useMediaQuery'
 
+/** Формулировки на карточках звучат как утверждения о текущей работе — поясняем, что оценивается важность. */
+function RankNote() {
+  return (
+    <div className="mb-3 rounded-lg border-l-4 border-brand bg-brand-50 p-3 dark:bg-zinc-800">
+      <div className="font-bold">{t.respond.rankNoteTitle}</div>
+      <p className="text-sm text-zinc-700 dark:text-zinc-300">{t.respond.rankNoteText}</p>
+    </div>
+  )
+}
+
 /**
  * ranking: [наименее важная … самая важная].
  * Desktop — горизонтальный ряд full-карточек (слева менее важно).
@@ -22,6 +32,7 @@ export function RankingStep({
   if (desktop) {
     return (
       <div>
+        <RankNote />
         <p className="mb-4 text-zinc-600 dark:text-zinc-300">{t.respond.rankTextDesktop}</p>
         <div className="mb-2 flex justify-between text-sm font-medium text-zinc-500">
           <span>← {t.results.lessImportant}</span>
@@ -60,6 +71,7 @@ export function RankingStep({
 
   return (
     <div>
+      <RankNote />
       <p className="mb-3 text-zinc-600 dark:text-zinc-300">{t.respond.rankTextMobile}</p>
       <div className="mb-1 text-xs font-bold uppercase tracking-wide text-zinc-500">↑ {t.results.moreImportant}</div>
       <SortableList
