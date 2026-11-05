@@ -56,15 +56,21 @@ export function RatingStep({
           )
         })}
       </div>
-      <textarea
-        className="input mt-3 text-sm"
-        rows={2}
-        maxLength={500}
-        placeholder={t.respond.rateCommentPlaceholder}
-        aria-label={`${card.name}: ${t.respond.rateCommentPlaceholder}`}
-        value={comment}
-        onChange={(e) => onCommentChange(e.target.value)}
-      />
+      {/* не вариант ответа: отделено линией, подпись над полем, пунктир и прозрачный фон */}
+      <div className="mt-5 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+        <label className="label" htmlFor="rating-comment">
+          {t.respond.rateCommentLabel} <span className="font-normal text-zinc-400">({t.common.optional})</span>
+        </label>
+        <textarea
+          id="rating-comment"
+          className="input border-dashed bg-transparent! text-sm"
+          rows={2}
+          maxLength={500}
+          placeholder={t.respond.rateCommentPlaceholder}
+          value={comment}
+          onChange={(e) => onCommentChange(e.target.value)}
+        />
+      </div>
     </div>
   )
 }
