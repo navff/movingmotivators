@@ -115,8 +115,8 @@ public class PublicSurveyService(
         {
             name = req.ParticipantName?.Trim();
             if (string.IsNullOrEmpty(name) || name.Length > ResponseLimits.NameMax)
-                throw AppException.Validation($"Укажите имя (до {ResponseLimits.NameMax} символов)",
-                    new Dictionary<string, string[]> { ["participantName"] = ["Укажите имя"] });
+                throw AppException.Validation($"Укажите имя и фамилию (до {ResponseLimits.NameMax} символов)",
+                    new Dictionary<string, string[]> { ["participantName"] = ["Укажите имя и фамилию"] });
             if (req.Consent != true)
                 throw AppException.Validation("Нужно согласие на обработку персональных данных",
                     new Dictionary<string, string[]> { ["consent"] = ["Нужно согласие"] });
